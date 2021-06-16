@@ -1,24 +1,15 @@
+import csvStuff
+import calc
+
 import math
-import csv
+import os
+import shutil
 from random import *
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 import numpy as np
 import pandas as pd
 
-
-def ggT(a,b):
-    if (b == 0):
-        return a
-    else:
-        return ggT(b, (a % b))
-
-
-def bruchKuerzen(a,b):
-    div = ggT(a,b)
-    a_out = a/div
-    b_out = b/div
-    return a_out,b_out
 
 #first transforms the grid by stretching it to the standard grid
 #the calculates the stretched a_one/a_two and calculates the period
@@ -28,7 +19,21 @@ def calculatePeriod():
     if b_one == 0:
         a_one_stretched = a_one * g_one
         a_two_stretched = a_two * g_two
-        a_one_stretched, a_two_stretched = bruchKuerzen(a_one_stretched,a_two_stretched)
+        a_one_stretched, a_two_stretched = calc.bruchKuerzen(a_one_stretched,a_two_stretched)
+        if(a_two_stretched%4 == 0):
+            a_two_stretched = a_two_stretched*g_two*a_two*b_two
+            return a_two_stretched/2
+        else:
+            a_two_stretched = a_two_stretched*g_two*a_two*b_two
+            return a_two_stretched
+
+
+def calculatePeriodinZ():
+    global a_one,a_two,b_one,b_two,g_one,g_two
+    if b_one == 0:
+        a_one_stretched = a_one * g_one
+        a_two_stretched = a_two * g_two
+        a_one_stretched, a_two_stretched = calc.bruchKuerzen(a_one_stretched,a_two_stretched)
         if(a_two_stretched%4 == 0):
             a_two_stretched = a_two_stretched*g_two*a_two*b_two
             return a_two_stretched/2
@@ -49,8 +54,6 @@ f(x) = a_one/a_two * x^2
 grid = g_one/g_two
 
 '''
-
-
 
 #x -> x * g_two * g_two * a_two * b_two
 #x = input * g_one/g_two
@@ -76,20 +79,11 @@ def getGrid():
 # -> f(x) - mod + grid = n+1 * grid
 
 def parabola_func(input):
-
     mod = (input* input*a_one*b_two *g_one*g_one + input * a_two * b_one * g_one * g_two)%getGrid()
     if(mod == 0):
         return input* input*a_one*b_two *g_one*g_one + input * a_two * b_one * g_one * g_two
     else:
         return input* input*a_one*b_two *g_one*g_one + input * a_two * b_one * g_one * g_two + getGrid()-mod
-
-
-def printstuff():
-    print ("allPoints",  allPoints)
-    print ("corners" , corners)
-    print ("xdataHull",  xdataHull)
-    print ("ydataHull",  ydataHull)
-    print ("-------------------------------------")
 
 
 #check every angle and delete point if necessary
@@ -108,185 +102,6 @@ def make_para_convex(xdata,ydata):
         else:
             i+=1
     return xdata,ydata
-
-
-
-
-
-#fills the array allPoints with f(x) rounded up to the grid
-#f(x) = (x- parabola_param) and x elem {0, 1*gridsize, 2*gridsize, ... , (size-1)*gridsize} 
-#corners is an array, which saves, if an element from allPoints is in the hull
-#corners[i] == 1 -> ith element from allPoints is in the hull
-#corners[i] == 0 -> ith element from allPoints is not in the hull
-#xdataHull and ydataHull save the x and y values of the points which are in the hull
-
-def initialize(size):
-    global corners,allPoints,xdataHull,ydataHull,distances,initialx
-
-    #calculate the bottom y-value for every x-value and add all points to the hull
-    for i in range (0,size):
-        allPoints.append(parabola_func(i))
-        corners.append(1)
-        xdataHull.append(transformNormalToInt(i))
-        ydataHull.append(allPoints[i])   
-
-    xdataHull,ydataHull = make_para_convex(xdataHull,ydataHull)     #make the hull convex by removing the "inner" points,
-    for i in range(0,len(xdataHull)):
-        initialx.append(xdataHull[i])
-    distances = calc_distances_one(xdataHull)
-    
-    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,allPoints)
-
-
-# makes one step of the gridPeeling and updates the hull values
-def oneStep():
-    global corners,allPoints,xdataHull,ydataHull,distances
-
-    for i in range (0,len(corners)):
-        if corners[i]==1:
-            allPoints[i] = allPoints[i]+ getGrid()
-        corners[i]=1
-
-    del xdataHull[:]
-    del ydataHull[:]
-
-    #add the mostright point of every x-value to the hull
-    #pretty much just needed for the x=0 value, but yeah, better safe than sorry...
-    for i in range (0,len(corners)-1):
-        if allPoints[i] >= allPoints[i+1]:
-            corners[i] = 0
-        else:
-            xdataHull.append(transformNormalToInt(i))
-            ydataHull.append(allPoints[i])
-    
-    xdataHull,ydataHull = make_para_convex(xdataHull,ydataHull) #make the hull convex by removing the "inner" points 
-    distances = calc_distances_one(xdataHull)
-    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,allPoints)
-
-
-def calc_distances_one(array):
-    output = []
-    for i in range(0,len(array)-1):
-        output.append((array[i+1]-array[i]))
-    return output
-
-def main(numX,numPeelings,printDebug,printPeriod,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_in , g_one_in,g_two_in):
-
-    #initialize all the global variables
-    global gridparam,gridSize,highestx,numsteps,parabola_param,rounder,distances,a_one,a_two,b_one, b_two,g_one,g_two
-    a_one,a_two,b_one,b_two,g_one,g_two = a_one_in,a_two_in,b_one_in, b_two_in,g_one_in,g_two_in
-
-    numsteps = numPeelings       #number of gridpeelings
-    highestx = numX
-
-
-
-    #this if-statement shall make a grid, but doesnt work for small gridsizes and looks awful..
-    #-> made gridsize 0.1 in vizualization...
-    if plot == 1 or plotPeriod==1:
-        intervals = float(getGrid()) #Spacing between each line of the displayed grid -> NOT WORKING WTF
-        fig,ax=plt.subplots()
-        #ax.set_xticklabels([]) 
-        #ax.set_yticklabels([])
-        loc = plticker.MultipleLocator(base=intervals)
-        loc.MAXTICKS= 694208142317
-        ax.xaxis.set_major_locator(loc)
-        ax.yaxis.set_major_locator(loc)
-        ax.grid(b= True, which='major', axis='both', linestyle='-') 
-
-    initialize(highestx)
-    print("---------------------- Initial ----------------------")
-    print("xdataHull", xdataHull[:20])
-    print("ydataHull", ydataHull[:20])
-    print("distances",distances[:20],'\n')
-    
-    if plot == 1 or plotPeriod ==1:
-        #plt.scatter(xdataHull,ydataHull,s=10)
-        #plt.plot(xdataHull,ydataHull)
-        plt.scatter(xdataHull[:10],ydataHull[:10],s=10)
-        plt.plot(xdataHull[:10],ydataHull[:10])
-    if printDebug == 1:
-        print("Initialized:")
-        printstuff()
-        print("-------------------------")
-
-    for i in range (0,numsteps):
-        oneStep()
-        if printstep == 1:
-            print("---------------------- Peeling",i+1,"----------------------")
-            print("xdataHull", xdataHull[:20])
-            print("ydataHull", ydataHull[:20])
-            print("distances",distances[:20],'\n')
-
-        if plot == 1:
-            plt.scatter(xdataHull[:10],ydataHull[:10],s=10)
-            plt.plot(xdataHull[:10],ydataHull[:10])
-            #plt.scatter(xdataHull,ydataHull,s=10)
-            #plt.plot(xdataHull,ydataHull)
-
-        if(xdataHull[0]==0):
-            if printPeriod == 1:
-                print("---------------------- Peeling",i+1,"----------------------")
-                print("xdataHull", xdataHull[:20])
-                print("ydataHull", ydataHull[:20])
-                print("distances",distances[:20],'\n')
-                #oneStep()
-            if plotPeriod == 1:
-                plt.scatter(xdataHull[:20],ydataHull[:20],s=10, color = '0')
-                plt.plot(xdataHull[:20],ydataHull[:20], color = '0')
-     
-    if plot == 1 or plotPeriod==1:
-        '''
-        # 100 linearly spaced numbers
-        mostrightx = int(xdataHull[10]/a_two)
-        x = np.linspace(xdataHull[0],mostrightx,10)
-        y = a_one*(x**2)*b_two + b_one * x * a_two 
-        x = a_two*x*b_two
-        plt.plot(x,y, 'r', color = '0')
-        '''
-        plt.show()
-
-def createCSV(name):
-    df = pd.DataFrame(list())
-    df.to_csv('empty_csv.csv')
-
-def createWriter(fileName):
-    csv_file = open(fileName, "w")
-    writer = csv.writer(csv_file)
-    return writer
-
-def writeLine(writer, line):
-    writer.writerow(line)
-
-def findPeriod(xdata):
-    period = calculatePeriod()
-    sum = 0
-    for i in range(1,len(xdata)):
-        sum+=xdata[i]
-        print(sum)
-        if(sum == period):
-            print("i=",i)
-            print("Period =",sum)
-            print("first",xdata[1:i+1])
-            print("second", xdata[i+1:2*i+1])
-            print("third", xdata[2*i+1:3*i+1])
-            if(xdata[1:i+1]==xdata[i+1:2*i+1] and xdata[1:i+1]== xdata[2*i+1:3*i+1]):
-                print("success, Periode =", period/(g_two*g_two*a_two*b_two))
-            return
-
-
-def getPeriodDistances(startIndex,endIndex, distances):
-    sum = 0
-    periodDistances =[]
-    period = calculatePeriod()
-    for i in range(startIndex,endIndex):
-            sum+=distances[i]
-            periodDistances.append(distances[i])
-            if(sum == period):
-                return periodDistances
-            if(sum>period):
-                return -1
-
 
 
 def correctRightSide(startIndex,endIndex, xHull, yHull, distances, periodDistances,yAll):
@@ -340,8 +155,12 @@ def correctCorners(corners, xHull):
     return corners
 
 def correctHull(xHull,yHull,corners,distances,yAll):
+    csvStuff.writePeeling(debugWriterX,"vorher","xHull",xHull)
+    csvStuff.writePeeling(debugWriterY,"vorher","yHull",yHull)
+    csvStuff.writePeeling(debugWriterDis,"vorher","distances",distances)
+
     start = int(len(distances)/3)
-    periodDistances = getPeriodDistances(start,len(distances),distances)
+    periodDistances = calc.getPeriodDistances(start,len(distances),calculatePeriod(),distances)
 
     if(periodDistances == -1):
         return -1
@@ -349,9 +168,138 @@ def correctHull(xHull,yHull,corners,distances,yAll):
     xHull, yHull, distances = correctRightSide(start+len(periodDistances),len(distances),xHull, yHull, distances, periodDistances,yAll)
     xHull, yHull, distances = correctLeftSide(start-1,periodDistances,xHull, yHull, distances,yAll)
     corners = correctCorners(corners, xHull)
-
+    csvStuff.writePeeling(debugWriterX,"nachher","xHull",xHull)
+    csvStuff.writePeeling(debugWriterY,"nachher","yHull",yHull)
+    csvStuff.writePeeling(debugWriterDis,"nachher","distances",distances)
     return xHull,yHull,corners,distances
 
+
+#fills the array allPoints with f(x) rounded up to the grid
+#f(x) = (x- parabola_param) and x elem {0, 1*gridsize, 2*gridsize, ... , (size-1)*gridsize} 
+#corners is an array, which saves, if an element from allPoints is in the hull
+#corners[i] == 1 -> ith element from allPoints is in the hull
+#corners[i] == 0 -> ith element from allPoints is not in the hull
+#xdataHull and ydataHull save the x and y values of the points which are in the hull
+
+def initialize(size):
+    global corners,allPoints,xdataHull,ydataHull,distances,initialx
+
+    #calculate the bottom y-value for every x-value and add all points to the hull
+    for i in range (0,size):
+        allPoints.append(parabola_func(i))
+        corners.append(1)
+        xdataHull.append(transformNormalToInt(i))
+        ydataHull.append(allPoints[i])   
+
+    xdataHull,ydataHull = make_para_convex(xdataHull,ydataHull)     #make the hull convex by removing the "inner" points,
+    for i in range(0,len(xdataHull)):
+        possiblePeriod.append(xdataHull[i])
+    distances = calc.calc_distances_one(xdataHull)
+    
+    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,allPoints)
+
+
+# makes one step of the gridPeeling and updates the hull values
+def oneStep():
+    global corners,allPoints,xdataHull,ydataHull,distances
+
+    for i in range (0,len(corners)):
+        if corners[i]==1:
+            allPoints[i] = allPoints[i]+ getGrid()
+        corners[i]=1
+
+    del xdataHull[:]
+    del ydataHull[:]
+
+    #add the mostright point of every x-value to the hull
+    #pretty much just needed for the x=0 value, but yeah, better safe than sorry...
+    for i in range (0,len(corners)-1):
+        if allPoints[i] >= allPoints[i+1]:
+            corners[i] = 0
+        else:
+            xdataHull.append(transformNormalToInt(i))
+            ydataHull.append(allPoints[i])
+    
+    xdataHull,ydataHull = make_para_convex(xdataHull,ydataHull) #make the hull convex by removing the "inner" points 
+    distances = calc.calc_distances_one(xdataHull)
+    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,allPoints)
+
+
+def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_in , g_one_in,g_two_in):
+
+    #initialize all the global variables
+    global gridparam,gridSize,highestx,numsteps,parabola_param,rounder,distances,a_one,a_two,b_one, b_two,g_one,g_two
+    a_one,a_two,b_one,b_two,g_one,g_two = a_one_in,a_two_in,b_one_in, b_two_in,g_one_in,g_two_in
+
+    numsteps = numPeelings       #number of gridpeelings
+    highestx = numX
+    line = [a_one,a_two,b_one,b_two,g_one,g_two,numsteps,highestx]
+    csvStuff.createCSV("Einzellogs/test.csv")
+    writer = csvStuff.createWriter("Einzellogs/test.csv")
+    csvStuff.writePeeling(writer,"Daten","a_one,a_two,b_one,b_two,g_one,g_two,numsteps,highestx", line)
+
+
+    #this if-statement shall make a grid, but doesnt work for small gridsizes and looks awful..
+    #-> made gridsize 0.1 in vizualization...
+    if plot == 1 or plotPeriod==1:
+        intervals = float(getGrid()) #Spacing between each line of the displayed grid -> NOT WORKING WTF
+        fig,ax=plt.subplots()
+        #ax.set_xticklabels([]) 
+        #ax.set_yticklabels([])
+        loc = plticker.MultipleLocator(base=intervals)
+        loc.MAXTICKS= 694208142317
+        ax.xaxis.set_major_locator(loc)
+        ax.yaxis.set_major_locator(loc)
+        ax.grid(b= True, which='major', axis='both', linestyle='-') 
+
+    initialize(highestx)
+    csvStuff.writePeeling(writer,"initial","xdataHull",xdataHull)
+    csvStuff.writePeeling(writer,"initial","ydataHull",ydataHull)
+    csvStuff.writePeeling(writer,"initial","xdataHull",xdataHull)
+    if(printstep==1):
+        print("---------------------- Initial ----------------------")
+        print("xdataHull", xdataHull[:20])
+        print("ydataHull", ydataHull[:20])
+        print("distances",distances[:20],'\n')
+        
+    if plot == 1 or plotPeriod ==1:
+        #plt.scatter(xdataHull,ydataHull,s=10)
+        #plt.plot(xdataHull,ydataHull)
+        plt.scatter(xdataHull[:10],ydataHull[:10],s=10)
+        plt.plot(xdataHull[:10],ydataHull[:10])
+
+    for i in range (0,numsteps):
+        oneStep()
+        csvStuff.writePeeling(writer,i,"xdataHull",xdataHull)
+        csvStuff.writePeeling(writer,i,"ydataHull",ydataHull)
+        csvStuff.writePeeling(writer,i,"xdataHull",xdataHull)
+        if printstep == 1:
+            print("---------------------- Peeling",i+1,"----------------------")
+            print("xdataHull", xdataHull[:20])
+            print("ydataHull", ydataHull[:20])
+            print("distances",distances[:20],'\n')
+
+        if plot == 1:
+            plt.scatter(xdataHull[:10],ydataHull[:10],s=10)
+            plt.plot(xdataHull[:10],ydataHull[:10])
+            #plt.scatter(xdataHull,ydataHull,s=10)
+            #plt.plot(xdataHull,ydataHull)
+
+        if(xdataHull[0]==0):
+            if plotPeriod == 1:
+                plt.scatter(xdataHull[:20],ydataHull[:20],s=10, color = '0')
+                plt.plot(xdataHull[:20],ydataHull[:20], color = '0')
+     
+    if plot == 1 or plotPeriod==1:
+        '''
+        # 100 linearly spaced numbers
+        mostrightx = int(xdataHull[10]/a_two)
+        x = np.linspace(xdataHull[0],mostrightx,10)
+        y = a_one*(x**2)*b_two + b_one * x * a_two 
+        x = a_two*x*b_two
+        plt.plot(x,y, 'r', color = '0')
+        '''
+        plt.show()
 
 
 
@@ -361,7 +309,7 @@ xdataHull = []      #x values of the points which are in the hull
 ydataHull = []      #y values of the points which are in the hull
 distances = []      #distances between the hullpoints of the current hull
 gradients = []      #gradients between the hullpoints
-initialx = []
+possiblePeriod = []
 
 
 #a_one | a_two | b_one | b_two | g_one | g_two | # calculatedPoints |Calculated Period | Sum Period | FirstPeriodHorizontalValues | StepsToVerticalPeriod | VerticalPeriodHorizontalValues | StepsToNewVerticalPeriod
@@ -378,16 +326,26 @@ g_one = 1           #g_one and g_two define the grid. The grid has the form G = 
 g_two = 10
 
 #THEORETICALSTUFF
-highestx = 100        #number of calculated points [0:3*Period]
-numPeelings = 20
+highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
+print(highestx)
+numPeelings = 10
 
 #VIEWSTUFF
-printDebug = 0      #printDebug ==1 -> Konsolenausdruck fuer Werte
-printPeriod = 0     #printPeriod ==1 -> moegliche Periode wird auf Konsole gedruckt
-printstep = 1      #printstep == 1 -> jeder Schritt wird geprintet
-plot = 1            #plot ==1 -> Graphen werden geplottet
+printstep = 0      #printstep == 1 -> jeder Schritt wird geprintet
+plot = 0            #plot ==1 -> Graphen werden geplottet
 plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden geplottet
 
-main(highestx,numPeelings,printDebug,printPeriod,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
-#print(calculatePeriod())
-#findPeriod(distances)
+shutil.rmtree("Logs")
+os.mkdir("Logs")
+name = "Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)
+
+os.mkdir(name)
+#csvStuff.createCSV(name+" debuggerX.csv")
+debugWriterX = csvStuff.createWriter(name+"/debuggerX.csv")
+#csvStuff.createCSV(name+" debuggerY.csv")
+debugWriterY = csvStuff.createWriter(name+"/debuggerY.csv")
+#csvStuff.createCSV(name+" debuggerDis.csv")
+debugWriterDis = csvStuff.createWriter(name+"/debuggerDis.csv")
+
+main(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
+#closeFile(name+"/debuggerX.csv")
