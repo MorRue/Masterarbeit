@@ -1,8 +1,10 @@
 import math
+import csv
 from random import *
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 import numpy as np
+import pandas as pd
 
 
 def ggT(a,b):
@@ -243,7 +245,18 @@ def main(numX,numPeelings,printDebug,printPeriod,printstep,plot,plotPeriod,a_one
         plt.plot(x,y, 'r', color = '0')
         '''
         plt.show()
-    
+
+def createCSV(name):
+    df = pd.DataFrame(list())
+    df.to_csv('empty_csv.csv')
+
+def createWriter(fileName):
+    csv_file = open(fileName, "w")
+    writer = csv.writer(csv_file)
+    return writer
+
+def writeLine(writer, line):
+    writer.writerow(line)
 
 def findPeriod(xdata):
     period = calculatePeriod()
@@ -261,21 +274,24 @@ def findPeriod(xdata):
                 print("success, Periode =", period/(g_two*g_two*a_two*b_two))
             return
 
-def correctHull(xHull,yHull,corners,distances,yAll):
-    period = calculatePeriod()
-    periodDistances = []
+
+def getPeriodDistances(startIndex,endIndex, distances):
     sum = 0
-    start = int(len(distances)/3)
-    for i in range(start,len(distances)):
-        sum+=distances[i]
-        periodDistances.append(distances[i])
-        if(sum == period):
-            break
-        if(sum>period):
-            raise Exception("Problem bei a=",a_one,"/",a_two,"Summe =",sum,"Period=",period)
-    
+    periodDistances =[]
+    period = calculatePeriod()
+    for i in range(startIndex,endIndex):
+            sum+=distances[i]
+            periodDistances.append(distances[i])
+            if(sum == period):
+                return periodDistances
+            if(sum>period):
+                return -1
+
+
+
+def correctRightSide(startIndex,endIndex, xHull, yHull, distances, periodDistances,yAll):
     index = 0
-    for i in range(start+len(periodDistances),len(distances)):
+    for i in range(startIndex,endIndex):
         distances[i]=periodDistances[index]
         xHull[i+1]=xHull[i]+distances[i]
         elementindex = int(round(xHull[i+1]/(a_two*g_two*g_one*b_two),0))
@@ -291,10 +307,12 @@ def correctHull(xHull,yHull,corners,distances,yAll):
                 del(xHull[j+1])
                 del(yHull[j+1])
                 j+=1
-            break
+            return xHull, yHull, distances
+    return xHull, yHull, distances
 
+def correctLeftSide(leftStartIndex, periodDistances, xHull, yHull, distances,yAll):
     index = len(periodDistances)-1
-    for i in range(start-1,0,-1):
+    for i in range(leftStartIndex,0,-1):
         if(xHull[i+1]-distances[i]>=0):
             distances[i]=periodDistances[index]
             xHull[i]=xHull[i+1]-distances[i]
@@ -310,13 +328,28 @@ def correctHull(xHull,yHull,corners,distances,yAll):
                 del(yHull[j])
                 del(distances[j])
                 j+=1
-            break
+            return xHull, yHull, distances
+    return xHull, yHull, distances
 
+def correctCorners(corners, xHull):
     for i in range(0,len(corners)):
         if(transformNormalToInt(i) in xHull):
             corners[i]=1
         else:
             corners[i]=0
+    return corners
+
+def correctHull(xHull,yHull,corners,distances,yAll):
+    start = int(len(distances)/3)
+    periodDistances = getPeriodDistances(start,len(distances),distances)
+
+    if(periodDistances == -1):
+        return -1
+    
+    xHull, yHull, distances = correctRightSide(start+len(periodDistances),len(distances),xHull, yHull, distances, periodDistances,yAll)
+    xHull, yHull, distances = correctLeftSide(start-1,periodDistances,xHull, yHull, distances,yAll)
+    corners = correctCorners(corners, xHull)
+
     return xHull,yHull,corners,distances
 
 
@@ -342,18 +375,18 @@ b_two = 1            # b_two must be unequal 0! and should be equal to 1 if b_on
 
 #GRIDSIZE
 g_one = 1           #g_one and g_two define the grid. The grid has the form G = g_one/g_two
-g_two = 100
+g_two = 10
 
 #THEORETICALSTUFF
-highestx = 10000        #number of calculated points [0:3*Period]
-numPeelings = 200
+highestx = 100        #number of calculated points [0:3*Period]
+numPeelings = 20
 
 #VIEWSTUFF
 printDebug = 0      #printDebug ==1 -> Konsolenausdruck fuer Werte
 printPeriod = 0     #printPeriod ==1 -> moegliche Periode wird auf Konsole gedruckt
-printstep = 0      #printstep == 1 -> jeder Schritt wird geprintet
-plot = 0            #plot ==1 -> Graphen werden geplottet
-plotPeriod = 1      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden geplottet
+printstep = 1      #printstep == 1 -> jeder Schritt wird geprintet
+plot = 1            #plot ==1 -> Graphen werden geplottet
+plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden geplottet
 
 main(highestx,numPeelings,printDebug,printPeriod,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
 #print(calculatePeriod())
