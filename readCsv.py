@@ -31,14 +31,16 @@ def testHullCorrection(reader):
     return max
 
 def plot(xdata,ydata):
-    intervals = float(gridToInvestigate/float(10)) #Spacing between each line of the displayed grid -> NOT WORKING WTF
+    intervals = float(gridToInvestigate/float(100)) #Spacing between each line of the displayed grid -> NOT WORKING WTF
     fig,ax=plt.subplots()
     #ax.set_xticklabels([]) 
     #ax.set_yticklabels([])
-    loc = plticker.MultipleLocator(base=intervals)
-    loc.MAXTICKS= 694208142317
-    ax.xaxis.set_major_locator(loc)
-    ax.yaxis.set_major_locator(loc)
+    locy = plticker.MultipleLocator(base=intervals)
+    locy.MAXTICKS= 694208142317
+    locx = plticker.MultipleLocator(base=0.1)
+    locx.MAXTICKS= 694208142317
+    ax.xaxis.set_major_locator(locx)
+    ax.yaxis.set_major_locator(locy)
     ax.grid(b= True, which='major', axis='both', linestyle='-')
     plt.scatter(xdata,ydata)
     plt.show()
@@ -105,7 +107,7 @@ next(logReader)
 xdata = []
 ydataFirst = []
 ydataSecond = []
-gridToInvestigate = 100
+gridToInvestigate = 10
 
 
 main()
