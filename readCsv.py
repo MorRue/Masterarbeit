@@ -6,69 +6,106 @@ import matplotlib.ticker as plticker
 import calc
 import csvStuff
 
-
-
-
-logfilename = "LogNew.csv" 
-logReader = csvStuff.createReader(logfilename)
-next(logReader)
-for row in logReader:
-    row = next(logReader)
-    a_one = int(row[0])
-    a_two = int(row[1])
-    b_one = int(row[2])
-    b_two = int(row[3])
-    g_one = int(row[4])
-    g_two = int(row[5])
-    steps_one = int(row[6])
-    steps_two = int(row[7])
-    grid = calc.getGrid(g_one, g_two, a_two, b_two)
-    filename = "LogsNew/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)+"/debuggerY.csv"
-    print(filename)
-    reader = csvStuff.createReader(filename)
-    j = 0
+def testVerticalPeriod(reader, steps_to_First , steps_to_Second,grid, filename):
     next(reader)
-    for i in range(0,2*(steps_one)):
+    for i in range(0,2*(steps_to_First)):
         next(reader)
-        j = j+1
     yValueStartPeriod = int(next(reader)[2])
 
-    for i in range(0,2*steps_two-1):
+    for i in range(0,2*steps_to_Second-1):
         next(reader)
 
     yValueEndPeriod = int(next(reader)[2])
     if(yValueEndPeriod- yValueStartPeriod - grid != 0):
         print("-------------------------")
-        print("PROBLEM : ",filename)
+        print("PROBLEM",filename)
         print("-------------------------")
 
 
+def testHullCorrection(reader):
+    max = 0
+    for row in reader:
+        tmp =len(row)-len(next(reader))
+        if(tmp>max):
+            max = tmp
+    return max
+
+def plot(xdata,ydata):
+    intervals = float(gridToInvestigate/float(10)) #Spacing between each line of the displayed grid -> NOT WORKING WTF
+    fig,ax=plt.subplots()
+    #ax.set_xticklabels([]) 
+    #ax.set_yticklabels([])
+    loc = plticker.MultipleLocator(base=intervals)
+    loc.MAXTICKS= 694208142317
+    ax.xaxis.set_major_locator(loc)
+    ax.yaxis.set_major_locator(loc)
+    ax.grid(b= True, which='major', axis='both', linestyle='-')
+    plt.scatter(xdata,ydata)
+    plt.show()
+
+
+def main():
+    for row in logReader:
+        row = next(logReader)
+        a_one = int(row[0])
+        a_two = int(row[1])
+        b_one = int(row[2])
+        b_two = int(row[3])
+        g_one = int(row[4])
+        g_two = int(row[5])
+        steps_one = int(row[6])
+        steps_two = int(row[7])
+        
+
+        #
+        #uncomment to plot verticalPeriod results
+        #
+
+        if(g_two == gridToInvestigate):
+            xdata.append(a_one/float(a_two))
+            ydataFirst.append(steps_one)
+            ydataSecond.append(steps_two)
+
+        #
+        #uncomment to find out if there is a vertical period which is bigger than grid
+        #
+        '''
+        grid = calc.getGrid(g_one, g_two, a_two, b_two)
+        filename = "../All Logs/Logs220621/Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)+"/debuggerY.csv"
+        print(filename)
+        reader = csvStuff.createReader(filename)
+        testVerticalPeriod(reader, steps_one, steps_two, grid, filename)
+        '''
+
+        #
+        #uncomment to find out what the biggest Correction of the hull is
+        #
+        '''
+        grid = calc.getGrid(g_one, g_two, a_two, b_two)
+        filename = "../All Logs/Logs220621/Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)+"/debuggerY.csv"
+        print(filename)
+        reader = csvStuff.createReader(filename)
+        max = 0
+        tmp = testHullCorrection(reader)
+        if(tmp>max):
+            max = tmp
+        print(max)
+        '''
+
+
+#GLOBAL CSV-READER-STUFF
+logfilename = "../All Logs/Logs220621/LogAll.csv" 
+logReader = csvStuff.createReader(logfilename)
+next(logReader)
 
 
 
-'''
-max = 0
+#GLOBAL PLOTSTUFF
+xdata = []
+ydataFirst = []
+ydataSecond = []
+gridToInvestigate = 100
 
-b_one = 0
-b_two = 1
-g_one = 1
 
-k=1
-
-while(k<1000):
-    g_two = k
-    for j in range(1,10):
-        for i in range(j,20):
-            a_one = j
-            a_two = i
-
-            if(calc.ggT(a_one,a_two)!=1):
-                continue
-            name = "LogsNew/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)+"/debuggerX.csv"
-            reader = csvStuff.createReader(name)
-            for row in reader:
-                tmp =len(row)-len(next(reader))
-                if(tmp>max):
-                    max = tmp
-                    print(max)
-'''
+main()
+plot(xdata,ydataSecond)

@@ -104,12 +104,10 @@ def correctRightSide(startIndex,endIndex, xHull, yHull, distances, periodDistanc
             if(index==len(periodDistances)):
                 index = 0
         else:
-            j=i
-            while(j<len(distances)):
+            for j in range(i, len(distances)):
                 del(distances[len(distances)-1])
                 del(xHull[len(xHull)-1])
                 del(yHull[len(yHull)-1])
-                j+=1
             return xHull, yHull, distances
     return xHull, yHull, distances
 
@@ -127,9 +125,9 @@ def correctLeftSide(leftStartIndex, periodDistances, xHull, yHull, distances,yAl
         else:
             j=0
             while(j < i+1):
-                del(xHull[j])
-                del(yHull[j])
-                del(distances[j])
+                del(xHull[0])
+                del(yHull[0])
+                del(distances[0])
                 j+=1
             return xHull, yHull, distances
     return xHull, yHull, distances
@@ -253,7 +251,7 @@ def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in,
 
     #this if-statement shall make a grid, but doesnt work for small gridsizes and looks awful..
     #-> made gridsize 0.1 in vizualization...
-    '''
+    
     if plot == 1 or plotPeriod==1:
         intervals = float(getGrid()) #Spacing between each line of the displayed grid -> NOT WORKING WTF
         fig,ax=plt.subplots()
@@ -264,11 +262,11 @@ def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in,
         ax.xaxis.set_major_locator(loc)
         ax.yaxis.set_major_locator(loc)
         ax.grid(b= True, which='major', axis='both', linestyle='-')
-    '''
+    
 
     initialize(highestx)
 
-    '''
+    
     if(printstep==1):
         print("---------------------- Initial ----------------------")
         print("xdataHull", xdataHull[:20])
@@ -280,23 +278,24 @@ def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in,
         #plt.plot(xdataHull,ydataHull)
         plt.scatter(xdataHull[:10],ydataHull[:10],s=10)
         plt.plot(xdataHull[:10],ydataHull[:10])
-    '''
+    
 
     for i in range (1,numsteps):
         oneStep()
-        '''
+        
+
         if printstep == 1:
             print("---------------------- Peeling",i+1,"----------------------")
-            print("xdataHull", xdataHull[:20])
-            print("ydataHull", ydataHull[:20])
-            print("distances",distances[:20],'\n')
+            print("xdataHull", xdataHull)
+            print("ydataHull", ydataHull)
+            print("distances",distances,'\n')
 
         if plot == 1:
             plt.scatter(xdataHull[:10],ydataHull[:10],s=10)
             plt.plot(xdataHull[:10],ydataHull[:10])
             #plt.scatter(xdataHull,ydataHull,s=10)
             #plt.plot(xdataHull,ydataHull)
-        '''
+        
 
         if(xdataHull[0]==0):
             if(xdataHull==possiblePeriod):
@@ -317,7 +316,7 @@ def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in,
                 for i in range(0,len(xdataHull)):
                     possiblePeriod.append(xdataHull[i])
      
-    #if plot == 1 or plotPeriod==1:
+    if plot == 1 or plotPeriod==1:
         '''
         # 100 linearly spaced numbers
         mostrightx = int(xdataHull[10]/a_two)
@@ -326,7 +325,8 @@ def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in,
         x = a_two*x*b_two
         plt.plot(x,y, 'r', color = '0')
         '''
-        #plt.show()
+        plt.show()
+
 
 
 
@@ -343,37 +343,42 @@ possiblePeriod = []
 data_line = []      #line which gets written in CSV
 
 # PARABOLA COEFFICIENTS
-a_one = 2           #a_one , a_two , b_one and b_two are the Nenner(two) and Zaehler(one) from f(x) = ax^2 + bx
-a_two = 15
+a_one = 1           #a_one , a_two , b_one and b_two are the Nenner(two) and Zaehler(one) from f(x) = ax^2 + bx
+a_two = 2
 b_one = 0
 b_two = 1            # b_two must be unequal 0! and should be equal to 1 if b_one == 0
 
 #GRIDSIZE
 g_one = 1           #g_one and g_two define the grid. The grid has the form G = g_one/g_two
-g_two = 10
+g_two = 1
 
 #THEORETICALSTUFF
 highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
-numPeelings = 1000
+numPeelings = 100000000
 
 #VIEWSTUFF
 printstep = 0      #printstep == 1 -> jeder Schritt wird geprintet
 plot = 0            #plot ==1 -> Graphen werden geplottet
 plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden geplottet
 
+#main(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
 
 
-#main(highestx,10,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
 
 
 
 #For CSV stuff
 periodReached  = False
-globalWriter = csvStuff.createWriter("LogNew.csv")
+path = "../All Logs/Logs220621/"
+
+
+os.mkdir(path)
+
+globalWriter = csvStuff.createWriter(path+"LogAll.csv")
 header = ["a_one","a_two","b_one","b_two","g_one","g_two","steps til first","steps til second period"]
 globalWriter.writerow(header)
 #shutil.rmtree("LogsNew")
-os.mkdir("LogsNew")
+os.mkdir(path+"Logs")
 
 
 k=1
@@ -386,16 +391,14 @@ while(k<1000):
             highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
             if(calc.ggT(a_one,a_two)!=1):
                 continue
-            name = "LogsNew/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)
+            name = path+"Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)
             print(name)
             os.mkdir(name)
-            #csvStuff.createCSV(name+" debuggerX.csv")
             debugWriterX = csvStuff.createWriter(name+"/debuggerX.csv")
-            #csvStuff.createCSV(name+" debuggerY.csv")
             debugWriterY = csvStuff.createWriter(name+"/debuggerY.csv")
-            #csvStuff.createCSV(name+" debuggerDis.csv")
             debugWriterDis = csvStuff.createWriter(name+"/debuggerDis.csv")
 
             main(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
     k = k*10
-            #closeFile(name+"/debuggerX.csv")
+
+
