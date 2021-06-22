@@ -12,6 +12,11 @@ def bruchKuerzen(a,b):
     return a_out,b_out
 
 
+def getGrid(g_onein,g_twoin,a_twoin,b_twoin):
+    return g_onein*g_twoin*a_twoin * b_twoin
+
+
+
 def calc_distances_one(array):
     output = []
     for i in range(0,len(array)-1):

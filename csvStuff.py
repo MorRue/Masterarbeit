@@ -10,6 +10,12 @@ def createWriter(fileName):
     writer = csv.writer(csv_file)
     return writer
 
+def createReader(fileName):
+    csv_file = open(fileName, newline='')
+    reader = csv.reader(csv_file, delimiter=',', quotechar='|')
+    return reader  
+
+
 def closeFile(fileName):
     fileName.close()
 

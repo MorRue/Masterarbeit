@@ -28,19 +28,6 @@ def calculatePeriod():
             return a_two_stretched
 
 
-def calculatePeriodinZ():
-    global a_one,a_two,b_one,b_two,g_one,g_two
-    if b_one == 0:
-        a_one_stretched = a_one * g_one
-        a_two_stretched = a_two * g_two
-        a_one_stretched, a_two_stretched = calc.bruchKuerzen(a_one_stretched,a_two_stretched)
-        if(a_two_stretched%4 == 0):
-            a_two_stretched = a_two_stretched*g_two*a_two*b_two
-            return a_two_stretched/2
-        else:
-            a_two_stretched = a_two_stretched*g_two*a_two*b_two
-            return a_two_stretched
-
 '''
 to make everything integers the whole thing gets stretched with
 g_two*g_two*a_two
@@ -66,6 +53,7 @@ def transformNormalToInt(input):
 #grid -> g_one * g_two * a_two * b_two
 def getGrid():
     return g_one*g_two*a_two * b_two
+
 
 #returns f(x) but stretched and fitted to the grid
 #f(x) =  a_one/a_two *(input * g_one/g_two)^2 + b_one/b_two * (input * g_one/g_two)
@@ -118,9 +106,9 @@ def correctRightSide(startIndex,endIndex, xHull, yHull, distances, periodDistanc
         else:
             j=i
             while(j<len(distances)):
-                del(distances[j])
-                del(xHull[j+1])
-                del(yHull[j+1])
+                del(distances[len(distances)-1])
+                del(xHull[len(xHull)-1])
+                del(yHull[len(yHull)-1])
                 j+=1
             return xHull, yHull, distances
     return xHull, yHull, distances
@@ -155,9 +143,16 @@ def correctCorners(corners, xHull):
     return corners
 
 def correctHull(xHull,yHull,corners,distances,yAll):
+
+    #
+    #Decomment to write Logs
+    #
+    
     csvStuff.writePeeling(debugWriterX,"vorher","xHull",xHull)
     csvStuff.writePeeling(debugWriterY,"vorher","yHull",yHull)
     csvStuff.writePeeling(debugWriterDis,"vorher","distances",distances)
+    
+
 
     start = int(len(distances)/3)
     periodDistances = calc.getPeriodDistances(start,len(distances),calculatePeriod(),distances)
@@ -168,9 +163,16 @@ def correctHull(xHull,yHull,corners,distances,yAll):
     xHull, yHull, distances = correctRightSide(start+len(periodDistances),len(distances),xHull, yHull, distances, periodDistances,yAll)
     xHull, yHull, distances = correctLeftSide(start-1,periodDistances,xHull, yHull, distances,yAll)
     corners = correctCorners(corners, xHull)
+
+    #
+    #Decomment to write Logs
+    #
+    
     csvStuff.writePeeling(debugWriterX,"nachher","xHull",xHull)
     csvStuff.writePeeling(debugWriterY,"nachher","yHull",yHull)
     csvStuff.writePeeling(debugWriterDis,"nachher","distances",distances)
+    
+
     return xHull,yHull,corners,distances
 
 
@@ -182,8 +184,13 @@ def correctHull(xHull,yHull,corners,distances,yAll):
 #xdataHull and ydataHull save the x and y values of the points which are in the hull
 
 def initialize(size):
-    global corners,allPoints,xdataHull,ydataHull,distances,initialx
-
+    global corners,allPoints,xdataHull,ydataHull,distances,possiblePeriod
+    del corners[:]
+    del allPoints[:]
+    del xdataHull[:]
+    del ydataHull[:]
+    del distances[:]
+    del possiblePeriod[:]
     #calculate the bottom y-value for every x-value and add all points to the hull
     for i in range (0,size):
         allPoints.append(parabola_func(i))
@@ -192,24 +199,24 @@ def initialize(size):
         ydataHull.append(allPoints[i])   
 
     xdataHull,ydataHull = make_para_convex(xdataHull,ydataHull)     #make the hull convex by removing the "inner" points,
+    distances = calc.calc_distances_one(xdataHull)
+    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,allPoints)
     for i in range(0,len(xdataHull)):
         possiblePeriod.append(xdataHull[i])
-    distances = calc.calc_distances_one(xdataHull)
-    
-    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,allPoints)
-
 
 # makes one step of the gridPeeling and updates the hull values
 def oneStep():
     global corners,allPoints,xdataHull,ydataHull,distances
 
-    for i in range (0,len(corners)):
-        if corners[i]==1:
-            allPoints[i] = allPoints[i]+ getGrid()
-        corners[i]=1
-
     del xdataHull[:]
     del ydataHull[:]
+
+    #TO-DO: make both loops in one loop!
+    gridVar = getGrid()
+    for i in range (0,len(corners)):
+        if corners[i]==1:
+            allPoints[i] = allPoints[i]+ gridVar
+        corners[i]=1
 
     #add the mostright point of every x-value to the hull
     #pretty much just needed for the x=0 value, but yeah, better safe than sorry...
@@ -226,21 +233,27 @@ def oneStep():
 
 
 def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_in , g_one_in,g_two_in):
-
+    periodReached = False
     #initialize all the global variables
-    global gridparam,gridSize,highestx,numsteps,parabola_param,rounder,distances,a_one,a_two,b_one, b_two,g_one,g_two
+    global gridparam,gridSize,highestx,numsteps,parabola_param,rounder,distances,a_one,a_two,b_one, b_two,g_one,g_two, data_line
     a_one,a_two,b_one,b_two,g_one,g_two = a_one_in,a_two_in,b_one_in, b_two_in,g_one_in,g_two_in
+
+    del data_line[:]
+    data_line.append(a_one)
+    data_line.append(a_two)
+    data_line.append(b_one)
+    data_line.append(b_two)
+    data_line.append(g_one)
+    data_line.append(g_two)
 
     numsteps = numPeelings       #number of gridpeelings
     highestx = numX
-    line = [a_one,a_two,b_one,b_two,g_one,g_two,numsteps,highestx]
-    csvStuff.createCSV("Einzellogs/test.csv")
-    writer = csvStuff.createWriter("Einzellogs/test.csv")
-    csvStuff.writePeeling(writer,"Daten","a_one,a_two,b_one,b_two,g_one,g_two,numsteps,highestx", line)
+    
 
 
     #this if-statement shall make a grid, but doesnt work for small gridsizes and looks awful..
     #-> made gridsize 0.1 in vizualization...
+    '''
     if plot == 1 or plotPeriod==1:
         intervals = float(getGrid()) #Spacing between each line of the displayed grid -> NOT WORKING WTF
         fig,ax=plt.subplots()
@@ -250,12 +263,12 @@ def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in,
         loc.MAXTICKS= 694208142317
         ax.xaxis.set_major_locator(loc)
         ax.yaxis.set_major_locator(loc)
-        ax.grid(b= True, which='major', axis='both', linestyle='-') 
+        ax.grid(b= True, which='major', axis='both', linestyle='-')
+    '''
 
     initialize(highestx)
-    csvStuff.writePeeling(writer,"initial","xdataHull",xdataHull)
-    csvStuff.writePeeling(writer,"initial","ydataHull",ydataHull)
-    csvStuff.writePeeling(writer,"initial","xdataHull",xdataHull)
+
+    '''
     if(printstep==1):
         print("---------------------- Initial ----------------------")
         print("xdataHull", xdataHull[:20])
@@ -267,12 +280,11 @@ def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in,
         #plt.plot(xdataHull,ydataHull)
         plt.scatter(xdataHull[:10],ydataHull[:10],s=10)
         plt.plot(xdataHull[:10],ydataHull[:10])
+    '''
 
-    for i in range (0,numsteps):
+    for i in range (1,numsteps):
         oneStep()
-        csvStuff.writePeeling(writer,i,"xdataHull",xdataHull)
-        csvStuff.writePeeling(writer,i,"ydataHull",ydataHull)
-        csvStuff.writePeeling(writer,i,"xdataHull",xdataHull)
+        '''
         if printstep == 1:
             print("---------------------- Peeling",i+1,"----------------------")
             print("xdataHull", xdataHull[:20])
@@ -284,13 +296,28 @@ def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in,
             plt.plot(xdataHull[:10],ydataHull[:10])
             #plt.scatter(xdataHull,ydataHull,s=10)
             #plt.plot(xdataHull,ydataHull)
+        '''
 
         if(xdataHull[0]==0):
-            if plotPeriod == 1:
-                plt.scatter(xdataHull[:20],ydataHull[:20],s=10, color = '0')
-                plt.plot(xdataHull[:20],ydataHull[:20], color = '0')
+            if(xdataHull==possiblePeriod):
+                if(periodReached == True):
+                    data_line.append(i-data_line[len(data_line)-1])
+
+                    #
+                    #Decomment to write Logs
+                    #                    
+                    globalWriter.writerow(data_line)
+
+                    break
+                periodReached = True
+                data_line.append(i)
+
+            else:
+                del possiblePeriod[:]
+                for i in range(0,len(xdataHull)):
+                    possiblePeriod.append(xdataHull[i])
      
-    if plot == 1 or plotPeriod==1:
+    #if plot == 1 or plotPeriod==1:
         '''
         # 100 linearly spaced numbers
         mostrightx = int(xdataHull[10]/a_two)
@@ -299,7 +326,7 @@ def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in,
         x = a_two*x*b_two
         plt.plot(x,y, 'r', color = '0')
         '''
-        plt.show()
+        #plt.show()
 
 
 
@@ -312,12 +339,12 @@ gradients = []      #gradients between the hullpoints
 possiblePeriod = []
 
 
-#a_one | a_two | b_one | b_two | g_one | g_two | # calculatedPoints |Calculated Period | Sum Period | FirstPeriodHorizontalValues | StepsToVerticalPeriod | VerticalPeriodHorizontalValues | StepsToNewVerticalPeriod
+#a_one | a_two | b_one | b_two | g_one | g_two | StepsToVerticalPeriod | StepsToNewVerticalPeriod
 data_line = []      #line which gets written in CSV
 
 # PARABOLA COEFFICIENTS
 a_one = 2           #a_one , a_two , b_one and b_two are the Nenner(two) and Zaehler(one) from f(x) = ax^2 + bx
-a_two = 7
+a_two = 15
 b_one = 0
 b_two = 1            # b_two must be unequal 0! and should be equal to 1 if b_one == 0
 
@@ -327,25 +354,48 @@ g_two = 10
 
 #THEORETICALSTUFF
 highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
-print(highestx)
-numPeelings = 10
+numPeelings = 1000
 
 #VIEWSTUFF
 printstep = 0      #printstep == 1 -> jeder Schritt wird geprintet
 plot = 0            #plot ==1 -> Graphen werden geplottet
 plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden geplottet
 
-shutil.rmtree("Logs")
-os.mkdir("Logs")
-name = "Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)
 
-os.mkdir(name)
-#csvStuff.createCSV(name+" debuggerX.csv")
-debugWriterX = csvStuff.createWriter(name+"/debuggerX.csv")
-#csvStuff.createCSV(name+" debuggerY.csv")
-debugWriterY = csvStuff.createWriter(name+"/debuggerY.csv")
-#csvStuff.createCSV(name+" debuggerDis.csv")
-debugWriterDis = csvStuff.createWriter(name+"/debuggerDis.csv")
 
-main(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
-#closeFile(name+"/debuggerX.csv")
+#main(highestx,10,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
+
+
+
+#For CSV stuff
+periodReached  = False
+globalWriter = csvStuff.createWriter("LogNew.csv")
+header = ["a_one","a_two","b_one","b_two","g_one","g_two","steps til first","steps til second period"]
+globalWriter.writerow(header)
+#shutil.rmtree("LogsNew")
+os.mkdir("LogsNew")
+
+
+k=1
+while(k<1000):
+    g_two = k
+    for j in range(1,20):
+        for i in range(j,20):
+            a_one = j
+            a_two = i
+            highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
+            if(calc.ggT(a_one,a_two)!=1):
+                continue
+            name = "LogsNew/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)
+            print(name)
+            os.mkdir(name)
+            #csvStuff.createCSV(name+" debuggerX.csv")
+            debugWriterX = csvStuff.createWriter(name+"/debuggerX.csv")
+            #csvStuff.createCSV(name+" debuggerY.csv")
+            debugWriterY = csvStuff.createWriter(name+"/debuggerY.csv")
+            #csvStuff.createCSV(name+" debuggerDis.csv")
+            debugWriterDis = csvStuff.createWriter(name+"/debuggerDis.csv")
+
+            main(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
+    k = k*10
+            #closeFile(name+"/debuggerX.csv")
