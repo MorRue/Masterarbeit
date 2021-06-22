@@ -71,7 +71,7 @@ def main():
         #
         '''
         grid = calc.getGrid(g_one, g_two, a_two, b_two)
-        filename = "../All Logs/Logs220621/Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)+"/debuggerY.csv"
+        filename = path + "Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)+"/debuggerY.csv"
         print(filename)
         reader = csvStuff.createReader(filename)
         testVerticalPeriod(reader, steps_one, steps_two, grid, filename)
@@ -82,7 +82,7 @@ def main():
         #
         '''
         grid = calc.getGrid(g_one, g_two, a_two, b_two)
-        filename = "../All Logs/Logs220621/Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)+"/debuggerY.csv"
+        filename = path + "Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)+"/debuggerY.csv"
         print(filename)
         reader = csvStuff.createReader(filename)
         max = 0
@@ -94,7 +94,8 @@ def main():
 
 
 #GLOBAL CSV-READER-STUFF
-logfilename = "../All Logs/Logs220621/LogAll.csv" 
+path = "../All Logs/Logs220621/"
+logfilename = path + "LogAll.csv" 
 logReader = csvStuff.createReader(logfilename)
 next(logReader)
 
