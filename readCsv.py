@@ -31,7 +31,7 @@ def testHullCorrection(reader):
     return max
 
 def plot(xdata,ydata):
-    intervals = float(gridToInvestigate/float(100)) #Spacing between each line of the displayed grid -> NOT WORKING WTF
+    intervals = float(gridToInvestigate/float(10)) #Spacing between each line of the displayed grid -> NOT WORKING WTF
     fig,ax=plt.subplots()
     #ax.set_xticklabels([]) 
     #ax.set_yticklabels([])
@@ -107,8 +107,8 @@ next(logReader)
 xdata = []
 ydataFirst = []
 ydataSecond = []
-gridToInvestigate = 10
+gridToInvestigate = 100
 
 
 main()
-plot(xdata,ydataSecond)
+plot(xdata,ydataFirst)
