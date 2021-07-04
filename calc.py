@@ -4,6 +4,9 @@ def ggT(a,b):
     else:
         return ggT(b, (a % b))
 
+def getInt(a):
+    return int(round(a,0))
+
 
 def bruchKuerzen(a,b):
     div = ggT(a,b)

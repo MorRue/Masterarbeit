@@ -27,6 +27,53 @@ def calculatePeriod():
         else:
             a_two_stretched = a_two_stretched*g_two*a_two*b_two
             return a_two_stretched
+    else:
+        a_one_stretched = a_one * g_one
+        a_two_stretched = a_two * g_two
+        a_one_stretched, a_two_stretched = calc.bruchKuerzen(a_one_stretched,a_two_stretched)
+        b_one_stretched = b_one * g_one
+        b_two_stretched = b_two * g_two
+        b_one_stretched, b_two_stretched = calc.bruchKuerzen(b_one_stretched,b_two_stretched)
+        periodCase = getPeriodCase(a_two_stretched,b_two_stretched)
+        if(periodCase==0):
+            print("Problem")
+            return
+        period = getPeriod(periodCase,a_two_stretched,b_two_stretched)
+        period_stretched = period*g_two*a_two*b_two
+        return period_stretched
+
+def getPeriod(periodCase,a, b):
+    if(periodCase=='a'):
+        period = calc.getInt(a*b/calc.ggT(a,b))
+    elif(periodCase=='b'):
+        a_half = calc.getInt(a/2)
+        period =calc.getInt(a_half*b/calc.ggT(a_half,b))
+    elif(periodCase=='c'):
+        period = calc.getInt(a*b/calc.ggT(a,b))
+    elif(periodCase=='d'):
+        period = calc.getInt(a*b/calc.ggT(a,b))
+    elif(periodCase=='e'):
+        a_half = calc.getInt(a/2)
+        period = calc.getInt(a_half*b/calc.ggT(a,b))
+    elif(periodCase=='f'):
+        a_half = calc.getInt(a/2)
+        period = a_half
+    return period   
+
+def getPeriodCase(a_two_stretched,b_two_stretched):
+    if(a_two_stretched%2!=0):
+        return 'a'
+    if(a_two_stretched%4==0):
+        return 'b'
+    if(a_two_stretched%2==0 and a_two_stretched%4!=0 and b_two_stretched%2 != 0):
+        return 'c'
+    if(a_two_stretched%2==0 and a_two_stretched%4!=0 and b_two_stretched%4 == 0):
+        return 'd'
+    if(a_two_stretched%2==0 and a_two_stretched%4!=0 and b_two_stretched%2 == 0 and b_two_stretched%4 != 0):
+        return 'e'
+    if(a_two_stretched == b_two_stretched and a_two_stretched%2 == 0 and a_two_stretched%4 != 0):
+        return 'f'
+    return 0
 
 
 '''
@@ -347,8 +394,8 @@ def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in,
     if plot == 1 or plotPeriod ==1:
         #plt.scatter(xdataHull,ydataHull,s=10)
         #plt.plot(xdataHull,ydataHull)
-        plt.scatter(xdataHull[:10],ydataHull[:10],s=10)
-        plt.plot(xdataHull[:10],ydataHull[:10])
+        plt.scatter(xdataHull[:20],ydataHull[:20],s=10)
+        plt.plot(xdataHull[:20],ydataHull[:20])
     
 
     for i in range (1,numsteps):
@@ -362,10 +409,10 @@ def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in,
             print("distances",distances,'\n')
 
         if plot == 1:
-            #plt.scatter(xdataHull[:10],ydataHull[:10],s=10)
-            #plt.plot(xdataHull[:10],ydataHull[:10])
-            plt.scatter(xdataHull,ydataHull,s=10)
-            plt.plot(xdataHull,ydataHull)
+            plt.scatter(xdataHull[:20],ydataHull[:20],s=10)
+            plt.plot(xdataHull[:20],ydataHull[:20])
+            #plt.scatter(xdataHull,ydataHull,s=10)
+            #plt.plot(xdataHull,ydataHull)
         
 
         if(xdataHull[0]==0):
@@ -420,13 +467,13 @@ data_line = []      #line which gets written in CSV
 
 # PARABOLA COEFFICIENTS
 a_one = 1           #a_one , a_two , b_one and b_two are the Nenner(two) and Zaehler(one) from f(x) = ax^2 + bx
-a_two = 7
-b_one = 0
-b_two = 1            # b_two must be unequal 0! and should be equal to 1 if b_one == 0
+a_two = 3
+b_one = -5
+b_two = 2            # b_two must be unequal 0! and should be equal to 1 if b_one == 0
 
 #GRIDSIZE
 g_one = 1           #g_one and g_two define the grid. The grid has the form G = g_one/g_two
-g_two = 100
+g_two = 10
 
 #THEORETICALSTUFF
 highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
