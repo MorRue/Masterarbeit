@@ -322,6 +322,7 @@ def oneStep():
 
 def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_in , g_one_in,g_two_in):
     periodReached = False
+    count = 0
     #initialize all the global variables
     global gridparam,gridSize,highestx,numsteps,parabola_param,rounder,distances,a_one,a_two,b_one, b_two,g_one,g_two, data_line
     a_one,a_two,b_one,b_two,g_one,g_two = a_one_in,a_two_in,b_one_in, b_two_in,g_one_in,g_two_in
@@ -392,6 +393,7 @@ def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in,
         
 
         if(xdataHull[0]==0):
+            count = count+1
             if(xdataHull==possiblePeriod):
                 if(periodReached == True):
                     data_line.append(i-data_line[len(data_line)-1])
@@ -406,12 +408,14 @@ def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in,
                 periodReached = True
                 data_line.append(i)
 
-            else:
+            elif(math.ceil(math.log2(count)) == math.log2(count) and periodReached == False):
                 del possiblePeriod[:]
+                #possiblePeriod = list(xdataHull)
                 
                 #possiblePeriod = []
                 for i in range(0,len(xdataHull)):
                     possiblePeriod.append(xdataHull[i])
+                
      
     if plot == 1 or plotPeriod==1:
         
@@ -443,10 +447,10 @@ possiblePeriod = []
 data_line = []      #line which gets written in CSV
 
 # PARABOLA COEFFICIENTS
-a_one = 1            #a_one , a_two , b_one and b_two are the Nenner(two) and Zaehler(one) from f(x) = ax^2 + bx
-a_two = 7
+a_one = 5            #a_one , a_two , b_one and b_two are the Nenner(two) and Zaehler(one) from f(x) = ax^2 + bx
+a_two =11
 b_one = 1
-b_two = 1           # b_two must be unequal 0! and should be equal to 1 if b_one == 0
+b_two = 6           # b_two must be unequal 0! and should be equal to 1 if b_one == 0
 
 #GRIDSIZE
 g_one = 1           #g_one and g_two define the grid. The grid has the form G = g_one/g_two
@@ -473,7 +477,7 @@ plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden gep
 
 
 #For CSV stuff
-path = "../All Logs/Logs100821/"
+path = "../All Logs/Logs110821/"
 
 
 os.mkdir(path)
@@ -489,8 +493,8 @@ while(k<100):
     g_two = k
     for j in range(1,20):
         for i in range(j,20):
-            for l in range(1,22,2):
-                for m in range(l,22,5):
+            for l in range(1,20,1):
+                for m in range(l,20,1):
                     a_one = j
                     a_two = i
                     b_one = l

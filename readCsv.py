@@ -37,9 +37,9 @@ def plot(xdata,ydata):
     fig,ax=plt.subplots()
     #ax.set_xticklabels([]) 
     #ax.set_yticklabels([])
-    locy = plticker.MultipleLocator(base=intervals)
+    locy = plticker.MultipleLocator(base=1)
     locy.MAXTICKS= 694208142317
-    locx = plticker.MultipleLocator(base=0.001)
+    locx = plticker.MultipleLocator(base=0.1)
     locx.MAXTICKS= 694208142317
     ax.xaxis.set_major_locator(locx)
     ax.yaxis.set_major_locator(locy)
@@ -55,9 +55,9 @@ def plot3d(xdata,ydata,zdata):
     #ax = fig.add_subplot(111, projection='3d')
     #ax.set_xticklabels([]) 
     #ax.set_yticklabels([])
-    locy = plticker.MultipleLocator(base=1)
+    locy = plticker.MultipleLocator(base=5)
     locy.MAXTICKS= 694208142317
-    locx = plticker.MultipleLocator(base=0.01)
+    locx = plticker.MultipleLocator(base=0.1)
     locx.MAXTICKS= 694208142317
     ax.xaxis.set_major_locator(locx)
     ax.yaxis.set_major_locator(locy)
@@ -122,7 +122,7 @@ def main():
 
 
 #GLOBAL CSV-READER-STUFF
-path = "../All Logs/Logs200721/"
+path = "../All Logs/Logs110821/"
 logfilename = path + "LogAll.csv" 
 logReader = csvStuff.createReader(logfilename)
 next(logReader)
@@ -134,7 +134,7 @@ xdata = []  #a1/a2
 zdata = []  #b1/b2
 ydataFirst = []
 ydataSecond = []
-gridToInvestigate = 100
+gridToInvestigate = 10
 
 
 main()
