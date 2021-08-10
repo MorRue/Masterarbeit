@@ -31,8 +31,9 @@ def calculatePeriod():
         a_one_stretched = a_one * g_one
         a_two_stretched = a_two * g_two
         a_one_stretched, a_two_stretched = calc.bruchKuerzen(a_one_stretched,a_two_stretched)
-        b_one_stretched = b_one * g_one
-        b_two_stretched = b_two * g_two
+
+        b_one_stretched = b_one #* g_one
+        b_two_stretched = b_two #* g_two
         b_one_stretched, b_two_stretched = calc.bruchKuerzen(b_one_stretched,b_two_stretched)
         periodCase = getPeriodCase(a_two_stretched,b_two_stretched)
         if(periodCase==0):
@@ -40,7 +41,7 @@ def calculatePeriod():
             return
         period = getPeriod(periodCase,a_two_stretched,b_two_stretched)
         #period_stretched =2* period*g_two*a_two*b_two  # 2* because there is a problem
-        period_stretched =period*g_two*g_two*a_two*b_two
+        period_stretched =period*g_two*a_two*b_two
 
         return period_stretched
 
@@ -369,7 +370,11 @@ def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in,
         plt.plot(xdataHull[:20],ydataHull[:20])
     
 
-    for i in range (1,numsteps):
+    #for i in range(1,numsteps):
+    
+    i=0
+    while(True):
+        i = i+1
         oneStep()
 
         
@@ -390,11 +395,11 @@ def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in,
             if(xdataHull==possiblePeriod):
                 if(periodReached == True):
                     data_line.append(i-data_line[len(data_line)-1])
-
+                    print("-------Period found!--------")
+                    
                     #
                     #Decomment to write Logs
                     #                    
-                    
                     globalWriter.writerow(data_line)
 
                     break
@@ -439,19 +444,19 @@ data_line = []      #line which gets written in CSV
 
 # PARABOLA COEFFICIENTS
 a_one = 1            #a_one , a_two , b_one and b_two are the Nenner(two) and Zaehler(one) from f(x) = ax^2 + bx
-a_two = 1
+a_two = 7
 b_one = 1
-b_two = 1            # b_two must be unequal 0! and should be equal to 1 if b_one == 0
+b_two = 1           # b_two must be unequal 0! and should be equal to 1 if b_one == 0
 
 #GRIDSIZE
 g_one = 1           #g_one and g_two define the grid. The grid has the form G = g_one/g_two
 g_two = 10
 
 #THEORETICALSTUFF
-highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
+highestx = 2*int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
 if(highestx<100):
     highestx = 100
-numPeelings = 300
+numPeelings = 200
 periodReached  = False
 
 
@@ -468,7 +473,7 @@ plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden gep
 
 
 #For CSV stuff
-path = "../All Logs/Logs050821/"
+path = "../All Logs/Logs100821/"
 
 
 os.mkdir(path)
@@ -476,34 +481,34 @@ os.mkdir(path)
 globalWriter = csvStuff.createWriter(path+"LogAll.csv")
 header = ["a_one","a_two","b_one","b_two","g_one","g_two","steps til first","steps til second period"]
 globalWriter.writerow(header)
-#shutil.rmtree("LogsNew")
 os.mkdir(path+"Logs")
 
 
-k=1
-while(k<10):
+k=10
+while(k<100):
     g_two = k
-    for j in range(1,22,4):
-        for i in range(17,100,30):
-            #for l in range(1,20):
-                #for m in range(l,20):
-            a_one = 1
-            a_two = 11100
-            b_one = j
-            b_two = i
-            highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
-            if(highestx<100):
-                highestx=100
-            if(calc.ggT(a_one,a_two)!=1):
-                continue
-            #if(calc.ggT(b_one,b_two)!=1):
-                #continue
-            name = path+"Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)
-            print(name)
-            os.mkdir(name)
-            debugWriterX = csvStuff.createWriter(name+"/debuggerX.csv")
-            debugWriterY = csvStuff.createWriter(name+"/debuggerY.csv")
-            debugWriterDis = csvStuff.createWriter(name+"/debuggerDis.csv")
+    for j in range(1,20):
+        for i in range(j,20):
+            for l in range(1,22,2):
+                for m in range(l,22,5):
+                    a_one = j
+                    a_two = i
+                    b_one = l
+                    b_two = m
+                    highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
+                    
+                    if(highestx<100):
+                        highestx=100
+                    if(calc.ggT(a_one,a_two)!=1):
+                        continue
+                    if(calc.ggT(b_one,b_two)!=1):
+                        continue
+                    name = path+"Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)
+                    print(name)
+                    os.mkdir(name)
+                    debugWriterX = csvStuff.createWriter(name+"/debuggerX.csv")
+                    debugWriterY = csvStuff.createWriter(name+"/debuggerY.csv")
+                    debugWriterDis = csvStuff.createWriter(name+"/debuggerDis.csv")
 
-            main(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
+                    main(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
     k = k*10
