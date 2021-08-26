@@ -3,7 +3,7 @@ from os import read
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 from mpl_toolkits.mplot3d import Axes3D
-
+import math
 
 import calc
 import csvStuff
@@ -37,9 +37,9 @@ def plot(xdata,ydata):
     fig,ax=plt.subplots()
     #ax.set_xticklabels([]) 
     #ax.set_yticklabels([])
-    locy = plticker.MultipleLocator(base=1)
+    locy = plticker.MultipleLocator(base=5)
     locy.MAXTICKS= 694208142317
-    locx = plticker.MultipleLocator(base=0.1)
+    locx = plticker.MultipleLocator(base=0.01)
     locx.MAXTICKS= 694208142317
     ax.xaxis.set_major_locator(locx)
     ax.yaxis.set_major_locator(locy)
@@ -55,7 +55,7 @@ def plot3d(xdata,ydata,zdata):
     #ax = fig.add_subplot(111, projection='3d')
     #ax.set_xticklabels([]) 
     #ax.set_yticklabels([])
-    locy = plticker.MultipleLocator(base=5)
+    locy = plticker.MultipleLocator(base=10)
     locy.MAXTICKS= 694208142317
     locx = plticker.MultipleLocator(base=0.1)
     locx.MAXTICKS= 694208142317
@@ -72,25 +72,27 @@ def plot3d(xdata,ydata,zdata):
 
 def main():
     for row in logReader:
+        if(len(row) >= 7):
+            a_one = int(row[0])
+            a_two = int(row[1])
+            b_one = int(row[2])
+            b_two = int(row[3])
+            g_one = int(row[4])
+            g_two = int(row[5])
+            steps_one = int(row[6])
+            steps_two = int(row[7])
+            
+            #
+            #uncomment to plot verticalPeriod results
+            #
 
-        a_one = int(row[0])
-        a_two = int(row[1])
-        b_one = int(row[2])
-        b_two = int(row[3])
-        g_one = int(row[4])
-        g_two = int(row[5])
-        steps_one = int(row[6])
-        steps_two = int(row[7])
-        
-        #
-        #uncomment to plot verticalPeriod results
-        #
-
-        if(g_two == gridToInvestigate):
-            xdata.append(a_one/float(a_two))
-            zdata.append(b_one/float(b_two))
-            ydataFirst.append(steps_one)
-            ydataSecond.append(steps_two)
+            if(g_two == gridToInvestigate):
+                aone.append(a_one)
+                atwo.append(a_two)
+                xdata.append(a_one/float(a_two))
+                zdata.append(b_one/float(b_two))
+                ydataFirst.append(steps_one)
+                ydataSecond.append(steps_two)
         
 
 
@@ -120,9 +122,48 @@ def main():
         print(max)
         '''
 
+def printBorders(a,steps):
+    aMin = []
+    aOneMin = []
+    aTwoMin = []
+    aMax = []
+    aOneMax = []
+    aTwoMax = []
+    stepsOrdered =[]
+    for i in range(0,len(steps)):
+        if(not (steps[i] in stepsOrdered)):
+            aMin.append(99999999)
+            aMax.append(0)
+            aOneMin.append(0)
+            aTwoMin.append(0)
+            aOneMax.append(0)
+            aTwoMax.append(0)            
+
+            stepsOrdered.append(steps[i])
+    
+    stepsOrdered.sort()
+    for i in range(0,len(a)):
+        index = stepsOrdered.index(steps[i])
+        #print("steps",steps[i])
+        #print("ordered",stepsOrdered[index])
+        if(a[i]>aMax[index]):
+            aMax[index]=a[i]
+            aOneMax[index]=aone[i]
+            aTwoMax[index]=atwo[i]
+        if(a[i]<aMin[index]):
+            aMin[index]=a[i]
+            aOneMin[index]=aone[i]
+            aTwoMin[index]=atwo[i]
+    print(len(stepsOrdered))
+    for i in range(0,len(aMin)):
+        print(stepsOrdered[i],"..von..",round(aMin[i],7),"=",aOneMin[i],"|",aTwoMin[i],"..bis..",round(aMax[i],7),"=",aOneMax[i],"|",aTwoMax[i])
+
+
 
 #GLOBAL CSV-READER-STUFF
-path = "../All Logs/Logs110821/"
+path = "../All Logs/LogsBorders1|1000<a<1|100/"
+#path = "../All Logs/"
+
 logfilename = path + "LogAll.csv" 
 logReader = csvStuff.createReader(logfilename)
 next(logReader)
@@ -131,12 +172,15 @@ next(logReader)
 
 #GLOBAL PLOTSTUFF
 xdata = []  #a1/a2
+aone = []
+atwo = []
 zdata = []  #b1/b2
 ydataFirst = []
 ydataSecond = []
-gridToInvestigate = 10
+gridToInvestigate = 1
 
 
 main()
+printBorders(xdata,ydataSecond)
 plot(xdata,ydataSecond)
 #plot3d(xdata,ydataSecond,zdata)
