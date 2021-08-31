@@ -1,36 +1,128 @@
-import csv
-from os import read
+
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 from mpl_toolkits.mplot3d import Axes3D
-import math
 
 import calc
 import csvStuff
 
-def testVerticalPeriod(reader, steps_to_First , steps_to_Second,grid, filename):
-    next(reader)
-    for i in range(0,2*(steps_to_First)):
-        next(reader)
-    yValueStartPeriod = int(next(reader)[2])
-
-    for i in range(0,2*steps_to_Second-1):
-        next(reader)
-
-    yValueEndPeriod = int(next(reader)[2])
-    if(yValueEndPeriod- yValueStartPeriod - grid != 0):
-        print("-------------------------")
-        print("PROBLEM",filename)
-        print("-------------------------")
 
 
-def testHullCorrection(reader):
-    max = 0
+# 1. PeriodenStartIndex bei dis_vorher finden
+# 2. PeriodenEndIndex bei disvorher finden
+# 3. halbe Periode zu jeder Seite rausgehen und gucken ob es stimmt
+#	-> bei Ungleichheit Peeling i und x Wert ausgeben
+#	
+# 4. PeriodenStartIndex bei dis_nachher finden mittels x-Wert von 1. 
+# 5. PeriodenEndIndex bei dis_nachher finden
+#
+# (6. x Werte von Endindex von vorher und nachher vergleichen -> unnötig)
+# 7. y-Werte von PeriodenStartIndex undPeriodenEndIndex vergleichen
+#	-> bei ungleichHeit sagen was falsch ist!
+
+
+def testHullCorrection(pathToLog,a_one,a_two,b_one,b_two,g_one,g_two):
+    logDisReader = csvStuff.createReader(pathToLog + "/debuggerDis.csv")
+    logXReader = csvStuff.createReader(pathToLog + "/debuggerX.csv")
+    logYReader = csvStuff.createReader(pathToLog + "/debuggerY.csv")
+
+    horizontalPeriod = calc.getStretchedHorizontalPeriod(a_one,a_two,b_one,b_two,g_one,g_two)
+    for row in logDisReader:
+        xValues = next(logXReader)
+        yValues = next(logYReader)
+        length = len(row)-2
+        startIndex = int(length/3)   #since the row has roughly 3*Period length and first two are not just for naming
+        endIndex = calc.getEndIndex(row[2:],horizontalPeriod,startIndex)
+        if(endIndex==-1):
+            print(horizontalPeriod)
+            print(row[startIndex:])
+            raise Exception("Period not found!")
+        tmp = calc.testXdata(row[2:],startIndex,endIndex)
+        if(tmp ==0): 
+            print("all fine till now!")
+        else: 
+            raise Exception("Problem")
+        
+        nachherStartIndex = 0
+        nachherX = next(logXReader)
+        nachherY = next(logYReader)
+        nachherDis = next(logDisReader)
+        for i in range(2,len(nachherX)):
+            if(nachherX[i]==xValues[startIndex]):
+                nachherStartIndex = i
+                break
+        if(nachherStartIndex==0):
+            raise Exception("Startindex in corrected Hull not found!")
+        else:
+            nachherEndIndex = calc.getEndIndex(nachherDis[2:],horizontalPeriod,nachherStartIndex)
+        if(nachherEndIndex ==-1):
+            raise Exception("Endindex in corrected Hull not found!")
+        
+        if(nachherY[nachherStartIndex] != yValues[startIndex]):
+            print("y-Werte an Startindex unterschiedlich")
+            return
+
+        if(nachherY[nachherEndIndex] != yValues[endIndex]):
+            print("y-Werte an Endindex unterschiedlich")
+            return
+        print("-----all good----  nachherStartIndex =",nachherStartIndex,"   startindex = ",startIndex, " nachherEndIndex = ", nachherEndIndex, "  endIndex = ",endIndex)
+
+
+
+def findHorziontalPeriod(reader,a_one,a_two,b_one,b_two,g_one,g_two):
+    next(reader) #skip headline
     for row in reader:
-        tmp =len(row)-len(next(reader))
-        if(tmp>max):
-            max = tmp
-    return max
+            a_one_tmp = int(row[0])
+            a_two_tmp = int(row[1])
+            b_one_tmp = int(row[2])
+            b_two_tmp = int(row[3])
+            g_one_tmp = int(row[4])
+            g_two_tmp = int(row[5])
+            #steps_one_tmp = int(row[6])
+            #steps_two_tmp = int(row[7])
+            horizontalPeriod_tmp = int(row[8])
+            if(a_one_tmp == a_one and a_two_tmp == a_two and b_one_tmp == b_one and b_two_tmp == b_two and g_one_tmp==g_one and g_two_tmp == g_two):
+                return horizontalPeriod_tmp
+    return -1
+
+
+
+def testFirstHull(pathToLogAll, pathToLogs,a_one,a_two,b_one,b_two,g_one,g_two):
+    logAllReader = csvStuff.createReader(pathToLogAll + "/LogAll.csv")
+    
+    logXReader = csvStuff.createReader(pathToLogs + "/debuggerX.csv")
+    logYReader = csvStuff.createReader(pathToLogs + "/debuggerY.csv")
+    logDisReader =csvStuff.createReader(pathToLogs + "/debuggerDis.csv")
+
+    horizontalPeriod = findHorziontalPeriod(logAllReader,a_one,a_two,b_one,b_two,g_one,g_two)
+    if(horizontalPeriod == -1):
+        raise Exception("Case not found!")
+        
+    if(calc.getHorizontalPeriod(a_two,b_two) != horizontalPeriod):
+        raise Exception("Period different!")
+    
+    xValues = next(logXReader)
+    yValues = next(logYReader)
+    xdisValues = next(logDisReader)
+    maxX = 0
+    maxY = 0
+    maxdif = 0
+    for i in range(2,len(xValues)):
+        x = int(xValues[i])/(a_two*b_two)
+        y_one = (x*x*a_one/a_two) + (x*b_one/b_two)
+        y_two = int(yValues[i])/(a_two*b_two)
+        dif_one = y_two - y_one     #unstretched: difference between hull y-value and calculated y-value 
+        print(dif_one, x ,)
+        y_three = (int(xValues[i])*int(xValues[i])*a_one/a_two) + (int(xValues[i])*b_one/b_two)
+        dif_two = int(yValues[i]) - y_three #stretched: difference between hull y-value and calculated y-value
+        if(dif_one >=maxdif):
+            maxX = x
+            maxY = y_one
+            maxdif = dif_one
+    return maxdif, maxX, maxY
+        
+
+
 
 def plot(xdata,ydata):
     intervals = float(gridToInvestigate/float(10)) #Spacing between each line of the displayed grid -> NOT WORKING WTF
@@ -161,12 +253,12 @@ def printBorders(a,steps):
 
 
 #GLOBAL CSV-READER-STUFF
-path = "../All Logs/LogsBorders1|1000<a<1|100/"
-#path = "../All Logs/"
+path = "../All Logs/Loga=1|128/Logs/a=1|128 b=1|7 g=1|1/"
+testHullCorrection(path,1,128,1,7,1,1)
 
-logfilename = path + "LogAll.csv" 
-logReader = csvStuff.createReader(logfilename)
-next(logReader)
+#logfilename = path + "LogAll.csv" 
+#logReader = csvStuff.createReader(logfilename)
+#next(logReader)
 
 
 
@@ -179,8 +271,19 @@ ydataFirst = []
 ydataSecond = []
 gridToInvestigate = 1
 
-
-main()
-printBorders(xdata,ydataSecond)
-plot(xdata,ydataSecond)
+#main()
+#printBorders(xdata,ydataSecond)
+#plot(xdata,ydataSecond)
 #plot3d(xdata,ydataSecond,zdata)
+
+
+'''
+testReader_one = csvStuff.createReader("../All Logs/BorderCheck2708Logs/a=4999|110000 b=2|3 g=1|1/debuggerY.csv")
+testReader_two = csvStuff.createReader("../All Logs/BorderCheck2708Logs/a=4999|110000 b=1|3 g=1|1/debuggerY.csv")
+
+print(next(testReader_one)[4])
+print(next(testReader_two)[4])
+
+
+#print(testFirstHull("../All Logs/Loga=1|214", "../All Logs/Loga=1|214/Logs/a=1|214 b=1|1 g=1|1",1,214,1,1,1,1))
+'''

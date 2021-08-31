@@ -316,11 +316,11 @@ def plotRealValues(xValues,yValues):
         xPlot.append(x)
         yPlot.append(y)
     disPlot = calc.calc_distances_one(xPlot)
-    
+    '''
     debugWriterX.writerow(xPlot)
     debugWriterY.writerow(yPlot)
     debugWriterDis.writerow(disPlot)
-
+    '''
     plt.scatter(xPlot[:20],yPlot[:20],s=10)
     plt.plot(xPlot[:20],yPlot[:20])
 
@@ -433,7 +433,7 @@ def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in,
                     #
                     #Decomment to write Logs
                     #                    
-                    #globalWriter.writerow(data_line)
+                    globalWriter.writerow(data_line)
 
                     break
                 periodReached = True
@@ -499,31 +499,31 @@ periodReached  = False
 #VIEWSTUFF
 printstep = 0      #printstep == 1 -> jeder Schritt wird geprintet
 plot = 0           #plot ==1 -> Graphen werden geplottet
-plotPeriod = 1      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden geplottet
+plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden geplottet
 
-
+'''
 debugWriterX = csvStuff.createWriter("../debuggerX.csv")
 debugWriterY = csvStuff.createWriter("../debuggerY.csv")
 debugWriterDis = csvStuff.createWriter("../debuggerDis.csv")
+'''
 
-
-main(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
+#main(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
 
 #cProfile.run('main(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)')
 
 
 
-'''
+
 #For CSV stuff
-path = "../All Logs/Loga=1|214/"
+path = "../All Logs/BorderCheck2808"
 
 
 os.mkdir(path)
 
-globalWriter = csvStuff.createWriter(path+"LogAll.csv")
+globalWriter = csvStuff.createWriter(path+"/LogAll.csv")
 header = ["a_one","a_two","b_one","b_two","g_one","g_two","steps til first","steps til second period","horizontal Period"]
 globalWriter.writerow(header)
-os.mkdir(path+"Logs")
+#os.mkdir(path+"Logs")
 
 
 k=1
@@ -531,12 +531,12 @@ while(k<10):
     g_two = k
     for j in range(1,10,10):
         for i in range(j,10,10):
-            for l in range(1,10,1):
-                for m in range(l,10,1):
-                    a_one = 1
-                    a_two = 214
-                    b_one = l
-                    b_two = m
+            for l in range(4,7,1):
+                for m in range(l,30,30):
+                    a_one = 5001
+                    a_two = 110000
+                    b_one = 1
+                    b_two = l
                     highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
                     
                     if(highestx<100):
@@ -547,14 +547,34 @@ while(k<10):
                         continue
                     name = path+"Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)
                     print(name)
-                    os.mkdir(name)
-                    debugWriterX = csvStuff.createWriter(name+"/debuggerX.csv")
-                    debugWriterY = csvStuff.createWriter(name+"/debuggerY.csv")
-                    debugWriterDis = csvStuff.createWriter(name+"/debuggerDis.csv")
+                    #os.mkdir(name)
+                    #debugWriterX = csvStuff.createWriter(name+"/debuggerX.csv")
+                    #debugWriterY = csvStuff.createWriter(name+"/debuggerY.csv")
+                    #debugWriterDis = csvStuff.createWriter(name+"/debuggerDis.csv")
+
+                    main(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
+                    a_one = 4999
+                    a_two = 110000
+                    b_one = 1
+                    b_two = l
+                    highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
+                    
+                    if(highestx<100):
+                        highestx=100
+                    if(calc.ggT(a_one,a_two)!=1):
+                        continue
+                    if(calc.ggT(b_one,b_two)!=1):
+                        continue
+                    name = path+"Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)
+                    print(name)
+                    #os.mkdir(name)
+                    #debugWriterX = csvStuff.createWriter(name+"/debuggerX.csv")
+                    #debugWriterY = csvStuff.createWriter(name+"/debuggerY.csv")
+                    #debugWriterDis = csvStuff.createWriter(name+"/debuggerDis.csv")
 
                     main(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
     k = k*10
-'''
+
 '''
 From = [125,210,295,420,545,765,920]
 To   = [130,215,300,425,550,770,925]
