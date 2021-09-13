@@ -17,6 +17,12 @@ def getEndIndex(xValues, horizontalPeriod,startIndex):
     return -1
 
 
+def stretchArray(yData,factor):
+    output = []
+    for x in yData:
+        output.append(x*factor)
+    return output
+
 #tests if the period continues for a third of the whole thing to the left and right
 def testXdata(xValues,startIndex,endIndex):
     periodValues = xValues[startIndex:endIndex+1]

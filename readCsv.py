@@ -86,6 +86,78 @@ def findHorziontalPeriod(reader,a_one,a_two,b_one,b_two,g_one,g_two):
     return -1
 
 
+def findVerticalPeriod(reader,a_one,a_two,b_one,b_two,g_one,g_two):
+    next(reader) #skip headline
+    for row in reader:
+            a_one_tmp = int(row[0])
+            a_two_tmp = int(row[1])
+            b_one_tmp = int(row[2])
+            b_two_tmp = int(row[3])
+            g_one_tmp = int(row[4])
+            g_two_tmp = int(row[5])
+            steps_one_tmp = int(row[6])
+            verticalPeriod_tmp = int(row[7])
+            if(a_one_tmp == a_one and a_two_tmp == a_two and b_one_tmp == b_one and b_two_tmp == b_two and g_one_tmp==g_one and g_two_tmp == g_two):
+                return steps_one_tmp,verticalPeriod_tmp
+    return -1,-1
+
+def findVelocity(pathToLogs,a_one,a_two,b_one,b_two,g_one,g_two, firstOccurence,verticalPeriod):
+    #logAllReader = csvStuff.createReader(pathToLogAll + "/LogAll.csv")
+    logXReader = csvStuff.createReader(pathToLogs + "/debuggerX.csv")
+    logYReader = csvStuff.createReader(pathToLogs + "/debuggerY.csv")
+    #logDisReader =csvStuff.createReader(pathToLogs + "/debuggerDis.csv")
+    #firstOccurence, verticalPeriod = findVerticalPeriod(logAllReader,a_one,a_two,b_one,b_two,g_one,g_two)
+    if(verticalPeriod == -1):
+        raise Exception("Case ,a_one,a_two,b_one,b_two,g_one,g_two =",a_one,a_two,b_one,b_two,g_one,g_two, "not found")
+    
+    #get to the First Occurence of the Period with xval[0] == 0
+    for i in range(0,firstOccurence):
+        next(logYReader)
+        next(logYReader)
+        next(logXReader)
+        next(logXReader)
+    next(logXReader)
+    xStart = next(logXReader)
+    next(logYReader)
+    yStart = next(logYReader)
+
+    #get to the Last Occurence of the Period with xval[0] == 0
+    for i in range(0,verticalPeriod-1):
+        next(logYReader)
+        next(logYReader)
+        next(logXReader)
+        next(logXReader)
+    next(logXReader)
+    xEnd = next(logXReader)
+    next(logYReader)
+    yEnd = next(logYReader)
+
+    #check if the xValues are actually the same
+    if(xStart == xEnd):
+        print((int(yEnd[2])-int(yStart[2]))/(a_two*b_two))
+        return (int(yEnd[2])-int(yStart[2]))/(a_two*b_two)
+    else:
+        raise Exception("Case ,a_one,a_two,b_one,b_two,g_one,g_two =",a_one,a_two,b_one,b_two,g_one,g_two,"  x-Values different")
+
+
+# Stimmt die Ursprungshülle/werte? 
+#
+#Arraywerte = x',y'
+#	-> wie überprüfen?
+#		1. f(x) ausrechnen
+#		2. dif = Hüllenwert-f(x) berechnen
+#		3. wenn dif >= 1 : Ausgabe von x und f(x) und Hüllenwert
+#	Sowohl mit gestretched, als auch mit normal!
+#	Stretchung = a_two * b_two
+#	
+#	x   = x'/(a_two*b_two)
+#	y_1 = f(x)
+#	y_2 = y'/(a_two*b_two)
+#	
+#	dif_1 = y_1-y_2
+#	
+#	y_3 = f(x')
+#	dif_2 = y' - y_3
 
 def testFirstHull(pathToLogAll, pathToLogs,a_one,a_two,b_one,b_two,g_one,g_two):
     logAllReader = csvStuff.createReader(pathToLogAll + "/LogAll.csv")
@@ -162,6 +234,29 @@ def plot3d(xdata,ydata,zdata):
     plt.show()
     #ax.show() 
 
+def createVelocityLog(pathToLogAll, pathToLogs):
+    logAllReader = csvStuff.createReader(pathToLogAll + "/LogAll.csv")
+    logVelocityWriter = csvStuff.createWriter(pathToLogAll+"/LogVelocity.csv")
+    header = next(logAllReader)
+    header.append("Velocity")
+    logVelocityWriter.writerow(header)
+
+    for row in logAllReader:
+        if(len(row) >= 7):
+            a_one = row[0]
+            a_two = row[1]
+            b_one = row[2]
+            b_two = row[3]
+            g_one = row[4]
+            g_two = row[5]
+            firstOccurence = int(row[6])
+            verticalPeriod = int(row[7])    
+            horizontalPeriod = int(row[8])
+            pathToLogs_tmp = pathToLogs +"/a="+a_one+"|"+a_two+" b="+ b_one +"|"+b_two+" g=1|1/"
+            velocity = findVelocity(pathToLogs_tmp,int(a_one),int(a_two),int(b_one),int(b_two),int(g_one),int(g_two), firstOccurence,verticalPeriod)
+            row.append(velocity)
+            logVelocityWriter.writerow(row)
+
 def main():
     for row in logReader:
         if(len(row) >= 7):
@@ -173,7 +268,9 @@ def main():
             g_two = int(row[5])
             steps_one = int(row[6])
             steps_two = int(row[7])
-            
+
+
+            '''
             #
             #uncomment to plot verticalPeriod results
             #
@@ -185,7 +282,7 @@ def main():
                 zdata.append(b_one/float(b_two))
                 ydataFirst.append(steps_one)
                 ydataSecond.append(steps_two)
-        
+            '''
 
 
         #
@@ -252,9 +349,15 @@ def printBorders(a,steps):
 
 
 
+pathToLogs = "../All Logs/Loga=1|1|/Logs/"
+pathToLogAll = "../All Logs/Loga=1|128"
+
+createVelocityLog(pathToLogAll,pathToLogs)
+#findVelocity(pathToLogAll,pathToLogs,1,128,1,7,1,1)
+#testHullCorrection(pathToLogs,1,128,1,7,1,1)
+
+
 #GLOBAL CSV-READER-STUFF
-path = "../All Logs/Loga=1|128/Logs/a=1|128 b=1|7 g=1|1/"
-testHullCorrection(path,1,128,1,7,1,1)
 
 #logfilename = path + "LogAll.csv" 
 #logReader = csvStuff.createReader(logfilename)

@@ -1,4 +1,4 @@
-1. Stimmt die Ursprungshülle/werte?
+1. Stimmt die Ursprungshülle/werte? - JA
 
 Arraywerte = x',y'
 
@@ -20,7 +20,7 @@ Arraywerte = x',y'
 	
 	dif_2 = y' - y_3
 
-2. Stimmt die Ausbesserung?
+2. Stimmt die Ausbesserung? - JA
 
 	1. PeriodenStartIndex bei dis_vorher finden
 	2. PeriodenEndIndex bei disvorher finden
@@ -35,7 +35,11 @@ Arraywerte = x',y'
 	7. y-Werte von PeriodenStartIndex undPeriodenEndIndex
 	
 
-3. Vorperiode finden
+3. Geschwindigkeit bestimmen
+	1. y-Abstand = y[ende] - y[ende - stepsVertical]
+	
+
+4. Vorperiode finden
    - y-Werte der Vorperiode finden
 
 
