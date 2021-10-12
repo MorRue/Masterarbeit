@@ -256,11 +256,7 @@ def correctHull(xHull,yHull,corners,distances,yData):
     #Decomment to write Logs
     #
     
-    
-    debugWriterX.writerow(xHull)
-    debugWriterY.writerow(yHull)
-    debugWriterDis.writerow(distances)
-    debugWriterCorners.writerow(corners)
+    debugWriterCorners.writerow(corners[int(len(corners)/3):2*int(len(corners)/3)])
     
 
     return xHull,yHull,corners,distances
@@ -485,11 +481,11 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
 
     
 
-    #for i in range(1,numsteps):
+    for i in range(0,numsteps):
     
-    i=0
-    while(True):
-        i = i+1
+    #i=0
+    #while(True):
+        #i = i+1
         oneStep()
         #print(xdataHull[len(xdataHull)-1]/a_two/b_two)
         x_max,dis_max = calcVerticalDis.getMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
@@ -512,38 +508,6 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
             plotSecondHalf(xdataHull,ydataHull)
             #plotRealValues(xdataHull,ydataHull)
             #plotRealValuesTranslate(xdataHull,ydataHull,0.2*i)
-
-        
-
-        if(xdataHull[0]==0):
-
-            count = count+1
-            if(xdataHull==possiblePeriodX and testPeriod(ydataHull,possiblePeriodY)):
-                if(periodReached == True):
-                    data_line.append(i-data_line[len(data_line)-1])
-                    data_line.append(getHorizontalPeriod(a_two,b_two))
-                    print("-------Period found!--------")
-                    data_line.append([x_min,dis_min,x_max,dis_max])
-                    #
-                    #Decomment to write Logs
-                    #                    
-                    globalWriter.writerow(data_line)
-
-                    break
-                periodReached = True
-                #print(ydataHull[0]/(b_two*a_two))
-                data_line.append(i)
-
-            elif(math.ceil(math.log2(count)) == math.log2(count) and periodReached == False):
-                del possiblePeriodX[:]
-                del possiblePeriodY[:]
-                
-                #possiblePeriodX = list(xdataHull)
-                #possiblePeriodX = []
-
-                for k in range(0,len(xdataHull)):
-                    possiblePeriodX.append(xdataHull[k])
-                    possiblePeriodY.append(ydataHull[k])
                 
      
     if plot == 1 or plotPeriod==1:
@@ -590,7 +554,7 @@ g_two = 1
 highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
 if(highestx<100):
     highestx = 100
-numPeelings = 0
+numPeelings = 20
 periodReached  = False
 
 
@@ -612,7 +576,7 @@ plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden gep
 
 
 #For CSV stuff
-path = "../All Logs/Investigate Glatt/"
+path = "../All Logs/Investigate Glatte/"
 
 
 os.mkdir(path)
@@ -639,7 +603,7 @@ for j in range(1,20,20):
                 if(b_one == 0 and b_two!=1):
                     continue
 
-                highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
+                highestx = int(20*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
                 
                 if(highestx<100):
                     highestx=100
@@ -703,118 +667,3 @@ for x in toinvestigate:
                     mainTwo(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
 '''
 
-
-
-'''
-def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_in , g_one_in,g_two_in):
-    periodReached = False
-    count = 0
-    #initialize all the global variables
-    global gridparam,gridSize,highestx,numsteps,parabola_param,rounder,distances,a_one,a_two,b_one, b_two,g_one,g_two, data_line
-    a_one,a_two,b_one,b_two,g_one,g_two = a_one_in,a_two_in,b_one_in, b_two_in,g_one_in,g_two_in
-    
-    del data_line[:]
-    data_line.append(a_one)
-    data_line.append(a_two)
-    data_line.append(b_one)
-    data_line.append(b_two)
-    data_line.append(g_one)
-    data_line.append(g_two)
-    
-    numsteps = numPeelings       #number of gridpeelings
-    highestx = numX
-    
-
-
-    #this if-statement shall make a grid, but doesnt work for small gridsizes and looks awful..
-    #-> made gridsize 0.1 in vizualization...
-    
-    if plot == 1 or plotPeriod==1:
-        intervals = float(getGrid()) #Spacing between each line of the displayed grid -> NOT WORKING WTF
-        #intervals = float(getRealGrid())
-        fig,ax=plt.subplots()
-        #ax.set_xticklabels([]) 
-        #ax.set_yticklabels([])
-        locx = plticker.MultipleLocator(base=1)
-        locx.MAXTICKS= 694208142317
-        locy = plticker.MultipleLocator(base=1)
-        locy.MAXTICKS= 694208142317
-        ax.xaxis.set_major_locator(locx)
-        ax.yaxis.set_major_locator(locy)
-        #plt.gca().xaxis.grid(True)
-        #ax.grid(b= True, which='both', axis='both', linestyle='-',zorder =10)
-    
-
-    initialize(highestx)
-    print("initialized")    
-    if(printstep==1):
-        print("---------------------- Initial ----------------------")
-        print("xdataHull", xdataHull[:20])
-        print("ydataHull", ydataHull[:20])
-        print("distances",distances[:20],'\n')
-        
-    if plot == 1 or plotPeriod ==1:
-        plotRealValues(xdataHull,ydataHull)
-
-    
-
-    #for i in range(1,numsteps):
-    
-    i=0
-    while(True):
-        i = i+1
-        oneStep()
-        
-        if printstep == 1:
-            print("---------------------- Peeling",i+1,"----------------------")
-            print("xdataHull", xdataHull)
-            print("ydataHull", ydataHull)
-            print("distances",distances,'\n')
-
-        if plot == 1:
-            plotRealValues(xdataHull,ydataHull)
-        
-
-        if(xdataHull[0]==0):
-
-            if(plotPeriod == 1):
-                plotRealValues(xdataHull,ydataHull)
-            count = count+1
-            if(xdataHull==possiblePeriodX):
-                if(periodReached == True):
-                    data_line.append(i-data_line[len(data_line)-1])
-                    data_line.append(getHorizontalPeriod(a_two,b_two))
-                    print("-------Period found!--------")
-                    
-                    #
-                    #Decomment to write Logs
-                    #                    
-                    #globalWriter.writerow(data_line)
-
-                    break
-                periodReached = True
-                print(ydataHull[0]/(b_two*a_two))
-                data_line.append(i)
-
-            elif(math.ceil(math.log2(count)) == math.log2(count) and periodReached == False):
-                del possiblePeriodX[:]
-                #possiblePeriodX = list(xdataHull)
-                
-                #possiblePeriodX = []
-                for k in range(0,len(xdataHull)):
-                    possiblePeriodX.append(xdataHull[k])
-                
-     
-    if plot == 1 or plotPeriod==1:
-        
-        # 100 linearly spaced numbers
-        #
-        #mostrightx = int(xdataHull[10]/a_two)
-        #x = np.linspace(xdataHull[0],mostrightx,10)
-        #y = a_one*(x**2)*b_two + b_one * x * a_two 
-        #x = a_two*x*b_two
-        #plt.plot(x,y, 'r', color = '0')
-        
-        plt.show()
-    
-'''

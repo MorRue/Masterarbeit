@@ -7,6 +7,16 @@ def ggT(a,b):
 def getInt(a):
     return int(round(a,0))
 
+
+def getBothFromOne(array):
+    one = []
+    two = []
+    for x in array:
+        one.append(x[0])
+        two.append(x[1])
+    return one,two
+
+
 #returns endIndex of Period in x-Values
 def getEndIndex(xValues, horizontalPeriod,startIndex):
     tmp = 0
@@ -123,7 +133,7 @@ def getGrid(g_onein,g_twoin,a_twoin,b_twoin):
 def calc_distances_one(array):
     output = []
     for i in range(0,len(array)-1):
-        output.append((array[i+1]-array[i]))
+        output.append((int(array[i+1])-int(array[i])))
     return output
 
 

@@ -233,10 +233,10 @@ def correctHull(xHull,yHull,corners,distances,yData):
     #Decomment to write Logs
     #
     
-    #csvStuff.writePeeling(debugWriterX,"vorher","xHull",xHull)
-    #csvStuff.writePeeling(debugWriterY,"vorher","yHull",yHull)
-    #csvStuff.writePeeling(debugWriterDis,"vorher","distances",distances)
-    #csvStuff.writePeeling(debugWriterCorners,"vorher","Corners",corners)
+    csvStuff.writePeeling(debugWriterX,"vorher","xHull",xHull)
+    csvStuff.writePeeling(debugWriterY,"vorher","yHull",yHull)
+    csvStuff.writePeeling(debugWriterDis,"vorher","distances",distances)
+    csvStuff.writePeeling(debugWriterCorners,"vorher","Corners",corners)
 
 
 
@@ -256,11 +256,10 @@ def correctHull(xHull,yHull,corners,distances,yData):
     #Decomment to write Logs
     #
     
-    
-    debugWriterX.writerow(xHull)
-    debugWriterY.writerow(yHull)
-    debugWriterDis.writerow(distances)
-    debugWriterCorners.writerow(corners)
+    csvStuff.writePeeling(debugWriterX,"nachher","xHull",xHull)
+    csvStuff.writePeeling(debugWriterY,"nachher","yHull",yHull)
+    csvStuff.writePeeling(debugWriterDis,"nachher","distances",distances)
+    csvStuff.writePeeling(debugWriterCorners,"nachher","Corners",corners)
     
 
     return xHull,yHull,corners,distances
@@ -293,71 +292,23 @@ def initialize(size):
     possiblePeriodX = []
     
     #gridVar = getGrid()
-
+    stretchedPeriod = calculatePeriod()
     #calculate the bottom y-value for every x-value and add all points to the hull
     for i in range (0,size):
-        corners.append(1)
+        corners.append(0)
         xData.append(transformNormalToInt(i))
         yData.append(parabola_func(i))
+        if(transformNormalToInt(i)%math.ceil(stretchedPeriod/2) == 0 and transformNormalToInt(i)!= 2*math.ceil(stretchedPeriod/2) and transformNormalToInt(i)!= 4*math.ceil(stretchedPeriod/2) and transformNormalToInt(i)!= 6*math.ceil(stretchedPeriod/2) and i!=0):
+            xdataHull.append(transformNormalToInt(i))
+            ydataHull.append(parabola_func(i))
+            corners.pop()
+            corners.append(1)
 
 
-    xdataHull,ydataHull = make_para_convex(xData,yData)     #make the hull convex by removing the "inner" points,
+    #xdataHull,ydataHull = make_para_convex(xData,yData)     #make the hull convex by removing the "inner" points,
     distances = calc.calc_distances_one(xdataHull)
-    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData)
-    for i in range(0,len(xdataHull)):
-        possiblePeriodX.append(xdataHull[i])
-        possiblePeriodY.append(ydataHull[i])
 
 
-#plots the x and y Values stretched back to the Z2 
-#translates y values with translation @param translation
-#x -> x/(g_two^2 * a_two * b_two)
-
-def plotRealValuesTranslate(xValues,yValues,translation):
-    xPlot = []
-    yPlot = []
-    for i in range(0,len(xValues)):
-        x = xValues[i]/(g_two*g_two*a_two*b_two)
-        y = yValues[i]/(g_two*g_two*a_two*b_two)
-        xPlot.append(x)
-        yPlot.append(y+translation)
-    disPlot = calc.calc_distances_one(xPlot)
-    '''
-    debugWriterX.writerow(xPlot)
-    debugWriterY.writerow(yPlot)
-    debugWriterDis.writerow(disPlot)
-    '''
-    plt.scatter(xPlot[:20],yPlot[:20],s=10)
-    plt.plot(xPlot[:20],yPlot[:20])
-
-
-def plotValuesTranslate(xValues,yValues,translation):
-    yPlot = []
-    for x in yValues:
-         yPlot.append(x+translation)
-    '''
-    debugWriterX.writerow(xPlot)
-    debugWriterY.writerow(yPlot)
-    debugWriterDis.writerow(disPlot)
-    '''
-    plt.scatter(xValues[:30],yPlot[:30],s=30)
-    plt.plot(xValues[:30],yPlot[:30])
-
-def plotSecondHalf(xValues,yValues):
-    xPlot = []
-    yPlot = []
-    for i in range(int(len(xValues)/3),len(xValues)):
-        x = xValues[i]/(g_two*g_two*a_two*b_two)
-        y = yValues[i]/(g_two*g_two*a_two*b_two)
-        xPlot.append(x)
-        yPlot.append(y)
-    '''
-    debugWriterX.writerow(xPlot)
-    debugWriterY.writerow(yPlot)
-    debugWriterDis.writerow(disPlot)
-    '''
-    plt.scatter(xPlot,yPlot,s=10)
-    plt.plot(xPlot,yPlot)
 
 #plots the x and y Values stretched back to the Z2 
 #x -> x/(g_two^2 * a_two * b_two)
@@ -382,7 +333,22 @@ def plotRealValues(xValues,yValues):
     #plt.plot(xPlot[:20],yPlot[:20])
 
 
-
+def plotRealValuesBlack(xValues,yValues):
+    xPlot = []
+    yPlot = []
+    for i in range(0,len(xValues)):
+        x = xValues[i]/(g_two*g_two*a_two*b_two)
+        y = yValues[i]/(g_two*g_two*a_two*b_two)
+        xPlot.append(x)
+        yPlot.append(y)
+    disPlot = calc.calc_distances_one(xPlot)
+    '''
+    debugWriterX.writerow(xPlot)
+    debugWriterY.writerow(yPlot)
+    debugWriterDis.writerow(disPlot)
+    '''
+    plt.scatter(xPlot,yPlot,s=100,color = 'black')
+    plt.plot(xPlot,yPlot,color = 'black')
 
 
 # makes one step of the gridPeeling and updates the hull values
@@ -406,9 +372,10 @@ def oneStep():
  
     
     xdataHull,ydataHull = make_para_convex(xData,yData) #make the hull convex by removing the "inner" points 
+    corners = correctCorners(corners,xdataHull)
+    #debugWriterCorners.writerow(corners[int(len(corners)/3):2*int(len(corners)/3)])
     distances = calc.calc_distances_one(xdataHull)
-    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData)
-
+    #xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData)
 
 def testPeriod(ydata,possibleY):
     difference = ydata[0]-possibleY[0]
@@ -417,14 +384,15 @@ def testPeriod(ydata,possibleY):
             #print(possibleY[i]-ydata[i])
             return False
     return True
+    
 
 
 
 def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_in , g_one_in,g_two_in):
     periodReached = False
-    count = 0
+    count = 1
     #initialize all the global variables
-    global gridparam,gridSize,highestx,numsteps,parabola_param,rounder,distances,a_one,a_two,b_one, b_two,g_one,g_two, data_line
+    global gridparam,gridSize,highestx,numsteps,parabola_param,rounder,distances,a_one,a_two,b_one, b_two,g_one,g_two, data_line,possiblePeriodCorners
     a_one,a_two,b_one,b_two,g_one,g_two = a_one_in,a_two_in,b_one_in, b_two_in,g_one_in,g_two_in
     
     del data_line[:]
@@ -464,87 +432,62 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
 
     initialize(highestx)
     print("period:",calculatePeriod()/a_two/b_two)
-    #print(corners)
-    x_max,dis_max = calcVerticalDis.getMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-    x_min, dis_min = calcVerticalDis.getMinDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-    dis_max = dis_max-dis_min
-    dis_all = calcVerticalDis.getAllMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-    line = [a_one,a_two,b_one,b_two,0,x_min,dis_min,x_max,dis_max]
-    #print("Peeling",0,": x-Val des min. Abst.:",x_min,", Min. Abst.:",round(dis_min,4),", x-Val des max. Abst.:",x_max,", Max. Abs:",round(dis_max,4))
-    #distanceWriter.writerow(line)
-    x,y = calc.getBothFromOne(dis_all)
-    plt.plot(x,y)
-    #print("initialized")    
 
+    #print("initialized")    
+    #print(xdataHull)
+    #print(ydataHull)
         
     if plot == 1 or plotPeriod ==1:
-        plotSecondHalf(xdataHull,ydataHull)
+        #plotSecondHalf(xdataHull,ydataHull)
 
-        #plotRealValues(xdataHull,ydataHull)
+        plotRealValuesBlack(xdataHull,ydataHull)
         #plotRealValuesTranslate(xdataHull,ydataHull,0)
 
     
 
-    #for i in range(1,numsteps):
+    for i in range(0,numsteps):
     
-    i=0
-    while(True):
-        i = i+1
+    #i=0
+    #while(True):
+        #i = i+1
         oneStep()
-        #print(xdataHull[len(xdataHull)-1]/a_two/b_two)
-        x_max,dis_max = calcVerticalDis.getMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-        x_min, dis_min = calcVerticalDis.getMinDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-        dis_max = dis_max-dis_min
-        line = [a_one,a_two,b_one,b_two,i,x_min,dis_min,x_max,dis_max]
-
-
-        #dis_all = calcVerticalDis.getAllMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-        #x,y = calc.getBothFromOne(dis_all)
-        #plt.plot(x,y)
-
-        line = [a_one,a_two,b_one,b_two,0,x_min,dis_min,x_max,dis_max]
-        #print("Peeling:",0,x_min,dis_min,x_max,dis_max)
-        #debugWriterDis.writerow(line)
-        #distanceWriter.writerow(line)
-        #print("Peeling",i,": x-Val des min. Abst.:",x_min,", Min. Abst.:",round(dis_min,4),", x-Val des max. Abst.:",x_max,", Max. Abs:",dis_max)
 
         if plot == 1:
-            plotSecondHalf(xdataHull,ydataHull)
-            #plotRealValues(xdataHull,ydataHull)
+            #plotSecondHalf(xdataHull,ydataHull)
+            plotRealValues(xdataHull,ydataHull)
             #plotRealValuesTranslate(xdataHull,ydataHull,0.2*i)
 
         
+        count += 1   
+        if(corners[int(len(corners)/3):2*int(len(corners)/3)] == possiblePeriodCorners):
+            if(periodReached == True):
+                data_line.append(i-data_line[len(data_line)-1])
+                data_line.append(getHorizontalPeriod(a_two,b_two))
+                print("-------Period found!--------")
+                #
+                #Decomment to write Logs
+                #                    
+                #globalWriter.writerow(data_line)
 
-        if(xdataHull[0]==0):
+                break
+            periodReached = True
+            #print(ydataHull[0]/(b_two*a_two))
+            data_line.append(i)
+        elif(math.ceil(math.log2(count)) == math.log2(count) and periodReached == False):
+            possiblePeriodCorners = corners[int(len(corners)/3):2*int(len(corners)/3)]
+            
+    if(i == numsteps-1):
+        data_line.append(0)
+        data_line.append(0)
+        data_line.append(0)
+        print("-------Period not found!--------")
+        #
+        #Decomment to write Logs
+        #                    
+        #globalWriter.writerow(data_line)
 
-            count = count+1
-            if(xdataHull==possiblePeriodX and testPeriod(ydataHull,possiblePeriodY)):
-                if(periodReached == True):
-                    data_line.append(i-data_line[len(data_line)-1])
-                    data_line.append(getHorizontalPeriod(a_two,b_two))
-                    print("-------Period found!--------")
-                    data_line.append([x_min,dis_min,x_max,dis_max])
-                    #
-                    #Decomment to write Logs
-                    #                    
-                    globalWriter.writerow(data_line)
 
-                    break
-                periodReached = True
-                #print(ydataHull[0]/(b_two*a_two))
-                data_line.append(i)
-
-            elif(math.ceil(math.log2(count)) == math.log2(count) and periodReached == False):
-                del possiblePeriodX[:]
-                del possiblePeriodY[:]
-                
-                #possiblePeriodX = list(xdataHull)
-                #possiblePeriodX = []
-
-                for k in range(0,len(xdataHull)):
-                    possiblePeriodX.append(xdataHull[k])
-                    possiblePeriodY.append(ydataHull[k])
-                
+               
      
     if plot == 1 or plotPeriod==1:
         
@@ -554,7 +497,7 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
         x = np.linspace(leftrightx,mostrightx,1000)
         y = a_one*(x**2)/a_two + b_one * x /b_two 
         #x = a_two*x*b_two
-        plt.plot(x,y, 'r', color = '0')
+        #plt.plot(x,y, 'r', color = '0')
         
         plt.show()
 
@@ -569,8 +512,8 @@ xdataHull = []      #x values of the points which are in the hull
 ydataHull = []      #y values of the points which are in the hull
 distances = []      #distances between the hullpoints of the current hull
 gradients = []      #gradients between the hullpoints
-possiblePeriodX = []
-possiblePeriodY = []
+possiblePeriodCorners = []
+
 
 
 #a_one | a_two | b_one | b_two | g_one | g_two | StepsToVerticalPeriod | StepsToNewVerticalPeriod
@@ -578,9 +521,9 @@ data_line = []      #line which gets written in CSV
 
 # PARABOLA COEFFICIENTS
 a_one = 1            #a_one , a_two , b_one and b_two are the Nenner(two) and Zaehler(one) from f(x) = ax^2 + bx
-a_two = 17
-b_one = 1
-b_two = 12         # b_two must be unequal 0! and should be equal to 1 if b_one == 0
+a_two = 2
+b_one = 5
+b_two = 9        # b_two must be unequal 0! and should be equal to 1 if b_one == 0
 
 #GRIDSIZE
 g_one = 1           #g_one and g_two define the grid. The grid has the form G = g_one/g_two
@@ -590,13 +533,13 @@ g_two = 1
 highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
 if(highestx<100):
     highestx = 100
-numPeelings = 0
+numPeelings = 200
 periodReached  = False
 
 
 #VIEWSTUFF
 printstep = 0      #printstep == 1 -> jeder Schritt wird geprintet
-plot = 0          #plot ==1 -> Graphen werden geplottet
+plot = 1         #plot ==1 -> Graphen werden geplottet
 plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden geplottet
 
 
@@ -605,14 +548,14 @@ plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden gep
 #debugWriterDis = csvStuff.createWriter("../debuggerDisAll.csv")
 
 
-#mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
+mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
 
 #cProfile.run('main(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)')
 
-
+'''
 
 #For CSV stuff
-path = "../All Logs/Investigate Glatt/"
+path = "../All Logs/Investigate Unglatt/"
 
 
 os.mkdir(path)
@@ -639,7 +582,7 @@ for j in range(1,20,20):
                 if(b_one == 0 and b_two!=1):
                     continue
 
-                highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
+                highestx = int(20*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
                 
                 if(highestx<100):
                     highestx=100
@@ -657,164 +600,4 @@ for j in range(1,20,20):
 
                 mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
 
-
-'''
-toinvestigate = [300,422,548,770,924]
-
-
-g_two = 1
-for x in toinvestigate:
-    path = f"../All Logs/Investigate 1|{x} new/"
-
-    os.mkdir(path)
-
-    globalWriter = csvStuff.createWriter(path+"LogAll.csv")
-    header = ["a_one","a_two","b_one","b_two","g_one","g_two","steps til first","steps til second period","horizontal Period"]
-    globalWriter.writerow(header)
-    os.mkdir(path+"Logs")
-    for j in range(1,30,30):
-        for i in range(1,30,30):
-            for l in range(0,10,1):
-                for m in range(l,10,1):
-                    a_one = 1
-                    a_two = x
-                    b_one = l
-
-                    b_two = m
-                    if(b_one == 0 and b_two!=1):
-                        continue
-
-                    highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
-                    
-                    if(highestx<100):
-                        highestx=100
-                    if(calc.ggT(a_one,a_two)!=1):
-                        continue
-                    if(calc.ggT(b_one,b_two)!=1):
-                        continue
-                    name = path+"Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)
-                    print(name)
-                    os.mkdir(name)
-                    debugWriterX = csvStuff.createWriter(name+"/debuggerX.csv")
-                    debugWriterY = csvStuff.createWriter(name+"/debuggerY.csv")
-                    debugWriterDis = csvStuff.createWriter(name+"/debuggerDis.csv")
-                    debugWriterCorners = csvStuff.createWriter(name+"/debuggerCorners.csv")
-
-                    mainTwo(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
-'''
-
-
-
-'''
-def main(numX,numPeelings,printstep,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_in , g_one_in,g_two_in):
-    periodReached = False
-    count = 0
-    #initialize all the global variables
-    global gridparam,gridSize,highestx,numsteps,parabola_param,rounder,distances,a_one,a_two,b_one, b_two,g_one,g_two, data_line
-    a_one,a_two,b_one,b_two,g_one,g_two = a_one_in,a_two_in,b_one_in, b_two_in,g_one_in,g_two_in
-    
-    del data_line[:]
-    data_line.append(a_one)
-    data_line.append(a_two)
-    data_line.append(b_one)
-    data_line.append(b_two)
-    data_line.append(g_one)
-    data_line.append(g_two)
-    
-    numsteps = numPeelings       #number of gridpeelings
-    highestx = numX
-    
-
-
-    #this if-statement shall make a grid, but doesnt work for small gridsizes and looks awful..
-    #-> made gridsize 0.1 in vizualization...
-    
-    if plot == 1 or plotPeriod==1:
-        intervals = float(getGrid()) #Spacing between each line of the displayed grid -> NOT WORKING WTF
-        #intervals = float(getRealGrid())
-        fig,ax=plt.subplots()
-        #ax.set_xticklabels([]) 
-        #ax.set_yticklabels([])
-        locx = plticker.MultipleLocator(base=1)
-        locx.MAXTICKS= 694208142317
-        locy = plticker.MultipleLocator(base=1)
-        locy.MAXTICKS= 694208142317
-        ax.xaxis.set_major_locator(locx)
-        ax.yaxis.set_major_locator(locy)
-        #plt.gca().xaxis.grid(True)
-        #ax.grid(b= True, which='both', axis='both', linestyle='-',zorder =10)
-    
-
-    initialize(highestx)
-    print("initialized")    
-    if(printstep==1):
-        print("---------------------- Initial ----------------------")
-        print("xdataHull", xdataHull[:20])
-        print("ydataHull", ydataHull[:20])
-        print("distances",distances[:20],'\n')
-        
-    if plot == 1 or plotPeriod ==1:
-        plotRealValues(xdataHull,ydataHull)
-
-    
-
-    #for i in range(1,numsteps):
-    
-    i=0
-    while(True):
-        i = i+1
-        oneStep()
-        
-        if printstep == 1:
-            print("---------------------- Peeling",i+1,"----------------------")
-            print("xdataHull", xdataHull)
-            print("ydataHull", ydataHull)
-            print("distances",distances,'\n')
-
-        if plot == 1:
-            plotRealValues(xdataHull,ydataHull)
-        
-
-        if(xdataHull[0]==0):
-
-            if(plotPeriod == 1):
-                plotRealValues(xdataHull,ydataHull)
-            count = count+1
-            if(xdataHull==possiblePeriodX):
-                if(periodReached == True):
-                    data_line.append(i-data_line[len(data_line)-1])
-                    data_line.append(getHorizontalPeriod(a_two,b_two))
-                    print("-------Period found!--------")
-                    
-                    #
-                    #Decomment to write Logs
-                    #                    
-                    #globalWriter.writerow(data_line)
-
-                    break
-                periodReached = True
-                print(ydataHull[0]/(b_two*a_two))
-                data_line.append(i)
-
-            elif(math.ceil(math.log2(count)) == math.log2(count) and periodReached == False):
-                del possiblePeriodX[:]
-                #possiblePeriodX = list(xdataHull)
-                
-                #possiblePeriodX = []
-                for k in range(0,len(xdataHull)):
-                    possiblePeriodX.append(xdataHull[k])
-                
-     
-    if plot == 1 or plotPeriod==1:
-        
-        # 100 linearly spaced numbers
-        #
-        #mostrightx = int(xdataHull[10]/a_two)
-        #x = np.linspace(xdataHull[0],mostrightx,10)
-        #y = a_one*(x**2)*b_two + b_one * x * a_two 
-        #x = a_two*x*b_two
-        #plt.plot(x,y, 'r', color = '0')
-        
-        plt.show()
-    
 '''
