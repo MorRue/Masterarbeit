@@ -8,7 +8,7 @@ def createCSV(name):
 def createWriter(fileName):
     csv_file = open(fileName, "w")
     writer = csv.writer(csv_file)
-    return writer
+    return writer,csv_file
 
 def createReader(fileName):
     csv_file = open(fileName, newline='')

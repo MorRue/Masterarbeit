@@ -18,16 +18,16 @@ import cProfile
 #then calculates the stretched a_one/a_two and calculates the period
 
 def calculatePeriod():
-    global a_one,a_two,b_one,b_two,g_one,g_two
+    global a_one,a_two,b_one,b_two,g_one,g_two,c_two
     if b_one == 0:
         a_one_stretched = a_one * g_one
         a_two_stretched = a_two * g_two
         a_one_stretched, a_two_stretched = calc.bruchKuerzen(a_one_stretched,a_two_stretched)
         if(a_two_stretched%4 == 0):
-            a_two_stretched = a_two_stretched*g_two*a_two*b_two
+            a_two_stretched = a_two_stretched*g_two*a_two*b_two*c_two
             return a_two_stretched/2
         else:
-            a_two_stretched = a_two_stretched*g_two*a_two*b_two
+            a_two_stretched = a_two_stretched*g_two*a_two*b_two*c_two
             return a_two_stretched
     else:
         a_one_stretched = a_one * g_one
@@ -43,7 +43,7 @@ def calculatePeriod():
             return
         period = getPeriod(periodCase,a_two_stretched,b_two_stretched)
         #period_stretched =2* period*g_two*a_two*b_two  # 2* because there is a problem
-        period_stretched =period*g_two*a_two*b_two
+        period_stretched =period*g_two*a_two*b_two*c_two
 
         return period_stretched 
 
@@ -104,13 +104,13 @@ grid = g_one/g_two
 #x = input * g_one/g_two
 #x -> input * g_one * g_two *a_two *b_two
 def transformNormalToInt(input):
-    return a_two*b_two * g_two*g_one*input
+    return a_two*b_two * g_two*g_one*input*c_two
 
 #grid -> grid * g_two * g_two * a_two *b_two
 #grid = g_one/g_two
 #grid -> g_one * g_two * a_two * b_two
 def getGrid():
-    return g_one*g_two*a_two * b_two
+    return g_one*g_two*a_two * b_two*c_two
 
 
 #returns the real grid
@@ -129,11 +129,11 @@ def getRealGrid():
 # -> f(x) - mod + grid = n+1 * grid
 
 def parabola_func(input):
-    mod = (input* input*a_one*b_two *g_one*g_one + input * a_two * b_one * g_one * g_two)%getGrid()
+    mod = (input* input*a_one*b_two *g_one*g_one*c_two + input * a_two * b_one * g_one * g_two*c_two + c_one* a_two * b_two * g_one * g_two)%getGrid()
     if(mod == 0):
-        return input* input*a_one*b_two *g_one*g_one + input * a_two * b_one * g_one * g_two
+        return input* input*a_one*b_two *g_one*g_one*c_two + input * a_two * b_one * g_one * g_two*c_two + c_one* a_two * b_two * g_one * g_two
     else:
-        return input* input*a_one*b_two *g_one*g_one + input * a_two * b_one * g_one * g_two + getGrid()-mod
+        return input* input*a_one*b_two *g_one*g_one*c_two + input * a_two * b_one * g_one * g_two*c_two + c_one* a_two * b_two * g_one * g_two + getGrid()-mod
 
 
 def initializeDif(corners,xData,yData):
@@ -188,7 +188,7 @@ def correctRightSide(startIndex,endIndex, xHull, yHull, distances, periodDistanc
         #if(distances[i]!=periodDistances[index]):
         distances[i]=periodDistances[index]
         xHull[i+1]=xHull[i]+distances[i]
-        elementindex = int(round(xHull[i+1]/(a_two*g_two*g_one*b_two),0))
+        elementindex = int(round(xHull[i+1]/(a_two*g_two*g_one*b_two*c_two),0))
         if(elementindex<len(yAll)):
             yHull[i+1] = yAll[elementindex]
             index+=1
@@ -215,7 +215,7 @@ def correctLeftSide(leftStartIndex, periodDistances, xHull, yHull, distances,yAl
         if(xHull[i+1]-periodDistances[index]>=0):
             distances[i]=periodDistances[index]
             xHull[i]=xHull[i+1]-distances[i]
-            elementindex = int(round(xHull[i]/(a_two*g_two*g_one*b_two),0))
+            elementindex = int(round(xHull[i]/(a_two*g_two*g_one*b_two*c_two),0))
             yHull[i] = yAll[elementindex]
             index-=1
             if(index==-1):
@@ -243,7 +243,7 @@ def correctCorners(corners, xHull):
         corners[i]=0
 
     for i in range(0,len(xHull)):
-        elementindex = int(round(xHull[i]/(a_two*g_two*g_one*b_two),0))
+        elementindex = int(round(xHull[i]/(a_two*g_two*g_one*b_two*c_two),0))
         corners[elementindex]=1
  
     return corners
@@ -341,8 +341,8 @@ def plotRealValuesTranslate(xValues,yValues,translation):
     xPlot = []
     yPlot = []
     for i in range(0,len(xValues)):
-        x = xValues[i]/(g_two*g_two*a_two*b_two)
-        y = yValues[i]/(g_two*g_two*a_two*b_two)
+        x = xValues[i]/(g_two*g_two*a_two*b_two*c_two)
+        y = yValues[i]/(g_two*g_two*a_two*b_two*c_two)
         xPlot.append(x)
         yPlot.append(y+translation)
     disPlot = calc.calc_distances_one(xPlot)
@@ -371,8 +371,8 @@ def plotSecondHalf(xValues,yValues):
     xPlot = []
     yPlot = []
     for i in range(int(len(xValues)/3),len(xValues)):
-        x = xValues[i]/(g_two*g_two*a_two*b_two)
-        y = yValues[i]/(g_two*g_two*a_two*b_two)
+        x = xValues[i]/(g_two*g_two*a_two*b_two*c_two)
+        y = yValues[i]/(g_two*g_two*a_two*b_two*c_two)
         xPlot.append(x)
         yPlot.append(y)
     '''
@@ -390,8 +390,8 @@ def plotRealValues(xValues,yValues):
     xPlot = []
     yPlot = []
     for i in range(0,len(xValues)):
-        x = xValues[i]/(g_two*g_two*a_two*b_two)
-        y = yValues[i]/(g_two*g_two*a_two*b_two)
+        x = xValues[i]/(g_two*g_two*a_two*b_two*c_two)
+        y = yValues[i]/(g_two*g_two*a_two*b_two*c_two)
         xPlot.append(x)
         yPlot.append(y)
     disPlot = calc.calc_distances_one(xPlot)
@@ -445,20 +445,23 @@ def testPeriod(ydata,possibleY):
 
 
 
-def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_in , g_one_in,g_two_in):
+def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_in , g_one_in,g_two_in,c_one_in,c_two_in):
     periodReached = False
     count = 0
     #initialize all the global variables
-    global gridparam,gridSize,highestx,numsteps,parabola_param,rounder,distances,a_one,a_two,b_one, b_two,g_one,g_two, data_line
-    a_one,a_two,b_one,b_two,g_one,g_two = a_one_in,a_two_in,b_one_in, b_two_in,g_one_in,g_two_in
+    global gridparam,gridSize,highestx,numsteps,parabola_param,rounder,distances,a_one,a_two,b_one, b_two,g_one,g_two, data_line,c_one,c_two
+    a_one,a_two,b_one,b_two,g_one,g_two,c_one,c_two = a_one_in,a_two_in,b_one_in, b_two_in,g_one_in,g_two_in,c_one_in,c_two_in
     
     del data_line[:]
     data_line.append(a_one)
     data_line.append(a_two)
     data_line.append(b_one)
     data_line.append(b_two)
+    data_line.append(c_one)
+    data_line.append(c_two)
     data_line.append(g_one)
-    data_line.append(g_two)
+    data_line.append(g_two)    
+
     
     numsteps = numPeelings       #number of gridpeelings
     highestx = numX
@@ -488,16 +491,16 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
     
 
     initialize(highestx)
-    print("period:",calculatePeriod()/a_two/b_two)
+    print("period:",calculatePeriod()/a_two/b_two/c_two)
     #print(corners)
-    x_max,dis_max = calcVerticalDis.getMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-    x_min, dis_min = calcVerticalDis.getMinDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-    dis_max = dis_max-dis_min
-    dis_all = calcVerticalDis.getAllMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-    line = [a_one,a_two,b_one,b_two,0,x_min,dis_min,x_max,dis_max]
+    #x_max,dis_max = calcVerticalDis.getMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
+    #x_min, dis_min = calcVerticalDis.getMinDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
+    #dis_max = dis_max-dis_min
+    #dis_all = calcVerticalDis.getAllMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
+    #line = [a_one,a_two,b_one,b_two,0,x_min,dis_min,x_max,dis_max]
     #print("Peeling",0,": x-Val des min. Abst.:",x_min,", Min. Abst.:",round(dis_min,4),", x-Val des max. Abst.:",x_max,", Max. Abs:",round(dis_max,4))
     #distanceWriter.writerow(line)
-    x,y = calc.getBothFromOne(dis_all)
+    #x,y = calc.getBothFromOne(dis_all)
     #plt.plot(x,y)
     #print("initialized")    
 
@@ -517,17 +520,17 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
         i = i+1
         oneStep()
         #print(xdataHull[len(xdataHull)-1]/a_two/b_two)
-        x_max,dis_max = calcVerticalDis.getMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-        x_min, dis_min = calcVerticalDis.getMinDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-        dis_max = dis_max-dis_min
-        line = [a_one,a_two,b_one,b_two,i,x_min,dis_min,x_max,dis_max]
+        #x_max,dis_max = calcVerticalDis.getMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
+        #x_min, dis_min = calcVerticalDis.getMinDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
+        #dis_max = dis_max-dis_min
+        #line = [a_one,a_two,b_one,b_two,c_one,c_two,i,x_min,dis_min,x_max,dis_max]
 
 
         #dis_all = calcVerticalDis.getAllMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
         #x,y = calc.getBothFromOne(dis_all)
         #plt.plot(x,y)
 
-        line = [a_one,a_two,b_one,b_two,0,x_min,dis_min,x_max,dis_max]
+        #line = [a_one,a_two,b_one,b_two,0,x_min,dis_min,x_max,dis_max]
         #print("Peeling:",0,x_min,dis_min,x_max,dis_max)
         #debugWriterDis.writerow(line)
         #distanceWriter.writerow(line)
@@ -551,12 +554,11 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
                     data_line.append(i-data_line[len(data_line)-1])
                     data_line.append(getHorizontalPeriod(a_two,b_two))
                     print("-------Period found!--------")
-                    print(i-data_line[len(data_line)-1])
-                    data_line.append([x_min,dis_min,x_max,dis_max])
+                    #data_line.append([x_min,dis_min,x_max,dis_max])
                     #
                     #Decomment to write Logs
                     #                    
-                    #globalWriter.writerow(data_line)
+                    globalWriter.writerow(data_line)
 
                     break
                 periodReached = True
@@ -581,7 +583,7 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
         leftrightx = int(xdataHull[0]/a_two/b_two)
 
         x = np.linspace(leftrightx,mostrightx,1000)
-        y = a_one*(x**2)/a_two + b_one * x /b_two 
+        y = a_one*(x**2)/a_two + b_one * x /b_two +c_one/c_two
         #x = a_two*x*b_two
         plt.plot(x,y, 'r', color = '0')
         
@@ -607,9 +609,12 @@ data_line = []      #line which gets written in CSV
 
 # PARABOLA COEFFICIENTS
 a_one = 1            #a_one , a_two , b_one and b_two are the Nenner(two) and Zaehler(one) from f(x) = ax^2 + bx
-a_two = 44
-b_one = 1
-b_two = 50         # b_two must be unequal 0! and should be equal to 1 if b_one == 0
+a_two = 1
+b_one = 0
+b_two = 1         # b_two must be unequal 0! and should be equal to 1 if b_one == 0
+c_one = 1
+c_two = 1
+
 
 #GRIDSIZE
 g_one = 1           #g_one and g_two define the grid. The grid has the form G = g_one/g_two
@@ -625,7 +630,7 @@ periodReached  = False
 
 #VIEWSTUFF
 printstep = 0      #printstep == 1 -> jeder Schritt wird geprintet
-plot = 1          #plot ==1 -> Graphen werden geplottet
+plot = 0          #plot ==1 -> Graphen werden geplottet
 plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden geplottet
 
 
@@ -634,65 +639,73 @@ plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden gep
 #debugWriterDis = csvStuff.createWriter("../debuggerDisAll.csv")
 
 
-mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
+#mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two,c_one,c_two)
 
 #cProfile.run('main(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)')
 
-'''
+
 
 #For CSV stuff
-path = "../All Logs/Investigate a=1|86/"
+path = "../All Logs/Investigate a=1|8 with c/"
 
 
 os.mkdir(path)
 
 globalWriter,globalFile = csvStuff.createWriter(path+"LogAll.csv")
-headerGlob = ["a_one","a_two","b_one","b_two","g_one","g_two","steps til first","steps til second period","horizontal Period","last_x_min","lastMinDis","last_x_max","lastMaxDis"]
+headerGlob = ["a_one","a_two","b_one","b_two","c_one","c_two","g_one","g_two","steps til first","steps til second period","horizontal Period","last_x_min","lastMinDis","last_x_max","lastMaxDis"]
 globalWriter.writerow(headerGlob)
 
 distanceWriter,distanceFile = csvStuff.createWriter(path+"Distances.csv")
-headerDis = ["a_one","a_two","b_one","b_two","Peeling","x_min","dis_min","x_max","dis_max"]
+headerDis = ["a_one","a_two","b_one","b_two","c_one","c_two","Peeling","x_min","dis_min","x_max","dis_max"]
 distanceWriter.writerow(headerDis)
 
 os.mkdir(path+"Logs")
 
-for j in range(1,100,100):
+for j in range(1,20,1):
     #print(j)
-    for i in range(j,100,100):
+    for i in range(j,20,1):
         for l in range(0,10,1):
-            for m in range(43,500,43):
-                a_one = 1
-                a_two = 86
-                b_one = l
+            for m in range(l,10,1):
+                for h in range(0,30,7):
+                    for z in range(h,30,1):
+                        a_one = j
+                        a_two = i
+                        b_one = l
 
-                b_two = m
-                if(b_one == 0 and b_two!=1):
-                    continue
+                        b_two = m
+                        c_one =h
+                        c_two =z
+                        if(b_one == 0 and b_two!=1):
+                            continue
+                        if(c_one == 0 and c_two!=1):
+                            continue
 
-                highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
-                
-                if(highestx<100):
-                    highestx=100
-                if(calc.ggT(a_one,a_two)!=1):
-                    continue
-                if(calc.ggT(abs(b_one),abs(b_two))!=1):
-                    continue
-                name = path+"Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two)
-                print(name)
-                os.mkdir(name)
-                debugWriterX,xFile = csvStuff.createWriter(name+"/debuggerX.csv")
-                debugWriterY,yFile = csvStuff.createWriter(name+"/debuggerY.csv")
-                debugWriterDis,disFile = csvStuff.createWriter(name+"/debuggerDis.csv")
-                debugWriterCorners,cornerFile = csvStuff.createWriter(name+"/debuggerCorners.csv")
-                #debugWriterDif,difFile = csvStuff.createWriter(name+"/differences.csv")
-                mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
-                xFile.close()
-                yFile.close()
-                disFile.close()
-                cornerFile.close()
-                #difFile.close()
+                        highestx = int(3*g_two*calculatePeriod()/g_one/b_two/c_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
+                        
+                        if(highestx<100):
+                            highestx=100
+                        if(calc.ggT(a_one,a_two)!=1):
+                            continue
+                        if(calc.ggT(abs(b_one),abs(b_two))!=1):
+                            continue
+                        if(calc.ggT(abs(c_one),abs(c_two))!=1):
+                            continue
+                        name = path+"Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" c="+str(c_one)+"|"+str(c_two)+" g="+str(g_one)+"|"+str(g_two)
+                        print(name)
+                        os.mkdir(name)
+                        debugWriterX,xFile = csvStuff.createWriter(name+"/debuggerX.csv")
+                        debugWriterY,yFile = csvStuff.createWriter(name+"/debuggerY.csv")
+                        debugWriterDis,disFile = csvStuff.createWriter(name+"/debuggerDis.csv")
+                        debugWriterCorners,cornerFile = csvStuff.createWriter(name+"/debuggerCorners.csv")
+                        #debugWriterDif,difFile = csvStuff.createWriter(name+"/differences.csv")
+                        mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two,c_one,c_two)
+                        xFile.close()
+                        yFile.close()
+                        disFile.close()
+                        cornerFile.close()
+                        #difFile.close()
 
-'''
+
 
 '''
 toinvestigate = [43,86,129,172,]

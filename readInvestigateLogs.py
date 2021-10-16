@@ -33,7 +33,7 @@ def findMaxZeros(array):
     return max
         
 def investigateVerticalHullDiff():
-    Foldername = "Investigate Pattern"
+    Foldername = "Investigate a=1|44"
     pathToLogs = f"../All Logs/{Foldername}/Logs/"
     pathToLogAll = f"../All Logs/{Foldername}/"
 
@@ -54,7 +54,7 @@ def investigateVerticalHullDiff():
         yPath = name+"debuggerY.csv"
         xPath = name+"debuggerX.csv"
         print("a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g=1|1")
-        AngleWriter = csvStuff.createWriter(name+"AngleDiff.csv")
+        AngleWriter,file = csvStuff.createWriter(name+"AngleDiffRound.csv")
 
         yReader = csvStuff.createReader(yPath)
         xReader = csvStuff.createReader(xPath)
@@ -62,12 +62,12 @@ def investigateVerticalHullDiff():
             x = next(xReader)
             line = []
             for i in range(1,len(x)-1):
-                gradOne = math.atan2(int(y[i])-int(y[i-1]),int(x[i])-int(x[i-1]))
-                gradTwo = math.atan2(int(y[i+1])-int(y[i]),int(x[i+1])-int(x[i]))
-                line.append(gradTwo-gradOne)
+                gradOne = (int(y[i])-int(y[i-1]))/(int(x[i])-int(x[i-1]))
+                gradTwo = (int(y[i+1])-int(y[i]))/(int(x[i+1])-int(x[i]))
+                line.append(round(gradTwo-gradOne,5))
             AngleWriter.writerow(line)
+        file.close()
 
-print("ha")
 investigateVerticalHullDiff()
                 
 

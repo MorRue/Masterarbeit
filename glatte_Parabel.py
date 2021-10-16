@@ -592,9 +592,9 @@ distanceWriter.writerow(headerDis)
 os.mkdir(path+"Logs")
 
 for j in range(1,20,20):
-    for i in range(j,20,1):
-        for l in range(0,10,1):
-            for m in range(abs(l),10,1):
+    for i in range(j+4,20,1):
+        for l in range(1,10,1):
+            for m in range(abs(l)+2,10,1):
                 a_one = j
                 a_two = i
                 b_one = l

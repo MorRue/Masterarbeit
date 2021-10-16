@@ -13,6 +13,20 @@ import numpy as np
 import pandas as pd
 import cProfile
 
+#
+#global stuff
+#
+
+yData = []      #represents the set of points of which the hull gets calculated
+corners = []        #saves if a point of the set is in the hull
+xData = []          # -1 if point is in hull, x value instead
+xdataHull = []      #x values of the points which are in the hull
+ydataHull = []      #y values of the points which are in the hull
+distances = []      #distances between the hullpoints of the current hull
+gradients = []      #gradients between the hullpoints
+possiblePeriodCorners = []
+
+
 #first transforms the grid by stretching it to the standard grid
 #then calculates the stretched a_one/a_two and calculates the period
 
@@ -233,10 +247,10 @@ def correctHull(xHull,yHull,corners,distances,yData):
     #Decomment to write Logs
     #
     
-    csvStuff.writePeeling(debugWriterX,"vorher","xHull",xHull)
-    csvStuff.writePeeling(debugWriterY,"vorher","yHull",yHull)
-    csvStuff.writePeeling(debugWriterDis,"vorher","distances",distances)
-    csvStuff.writePeeling(debugWriterCorners,"vorher","Corners",corners)
+    #csvStuff.writePeeling(debugWriterX,"vorher","xHull",xHull)
+    #csvStuff.writePeeling(debugWriterY,"vorher","yHull",yHull)
+    #csvStuff.writePeeling(debugWriterDis,"vorher","distances",distances)
+    #csvStuff.writePeeling(debugWriterCorners,"vorher","Corners",corners)
 
 
 
@@ -256,10 +270,10 @@ def correctHull(xHull,yHull,corners,distances,yData):
     #Decomment to write Logs
     #
     
-    csvStuff.writePeeling(debugWriterX,"nachher","xHull",xHull)
-    csvStuff.writePeeling(debugWriterY,"nachher","yHull",yHull)
-    csvStuff.writePeeling(debugWriterDis,"nachher","distances",distances)
-    csvStuff.writePeeling(debugWriterCorners,"nachher","Corners",corners)
+    #csvStuff.writePeeling(debugWriterX,"nachher","xHull",xHull)
+    #csvStuff.writePeeling(debugWriterY,"nachher","yHull",yHull)
+    #csvStuff.writePeeling(debugWriterDis,"nachher","distances",distances)
+    #csvStuff.writePeeling(debugWriterCorners,"nachher","Corners",corners)
     
 
     return xHull,yHull,corners,distances
@@ -298,7 +312,8 @@ def initialize(size):
         corners.append(0)
         xData.append(transformNormalToInt(i))
         yData.append(parabola_func(i))
-        if(transformNormalToInt(i)%math.ceil(stretchedPeriod/2) == 0 and transformNormalToInt(i)!= 2*math.ceil(stretchedPeriod/2) and transformNormalToInt(i)!= 4*math.ceil(stretchedPeriod/2) and transformNormalToInt(i)!= 6*math.ceil(stretchedPeriod/2) and i!=0):
+        #if(transformNormalToInt(i)%math.ceil(stretchedPeriod/2) == 0 and transformNormalToInt(i)!= 2*math.ceil(stretchedPeriod/2) and transformNormalToInt(i)!= 4*math.ceil(stretchedPeriod/2) and transformNormalToInt(i)!= 6*math.ceil(stretchedPeriod/2) and i!=0):
+        if(transformNormalToInt(i)%math.ceil(stretchedPeriod) == 0):
             xdataHull.append(transformNormalToInt(i))
             ydataHull.append(parabola_func(i))
             corners.pop()
@@ -307,6 +322,8 @@ def initialize(size):
 
     #xdataHull,ydataHull = make_para_convex(xData,yData)     #make the hull convex by removing the "inner" points,
     distances = calc.calc_distances_one(xdataHull)
+    debugWriterCorners.writerow(corners[int(len(corners)/3):2*int(len(corners)/3)])
+
 
 
 
@@ -373,9 +390,9 @@ def oneStep():
     
     xdataHull,ydataHull = make_para_convex(xData,yData) #make the hull convex by removing the "inner" points 
     corners = correctCorners(corners,xdataHull)
-    #debugWriterCorners.writerow(corners[int(len(corners)/3):2*int(len(corners)/3)])
     distances = calc.calc_distances_one(xdataHull)
-    #xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData)
+    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData)
+    debugWriterCorners.writerow(corners[int(len(corners)/3):2*int(len(corners)/3)])
 
 def testPeriod(ydata,possibleY):
     difference = ydata[0]-possibleY[0]
@@ -445,11 +462,11 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
 
     
 
-    for i in range(0,numsteps):
+    #for i in range(0,numsteps):
     
-    #i=0
-    #while(True):
-        #i = i+1
+    i=0
+    while(True):
+        i = i+1
         oneStep()
 
         if plot == 1:
@@ -467,7 +484,7 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
                 #
                 #Decomment to write Logs
                 #                    
-                #globalWriter.writerow(data_line)
+                globalWriter.writerow(data_line)
 
                 break
             periodReached = True
@@ -484,7 +501,7 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
         #
         #Decomment to write Logs
         #                    
-        #globalWriter.writerow(data_line)
+        globalWriter.writerow(data_line)
 
 
                
@@ -505,14 +522,6 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
 
 
 
-yData = []      #represents the set of points of which the hull gets calculated
-corners = []        #saves if a point of the set is in the hull
-xData = []          # -1 if point is in hull, x value instead
-xdataHull = []      #x values of the points which are in the hull
-ydataHull = []      #y values of the points which are in the hull
-distances = []      #distances between the hullpoints of the current hull
-gradients = []      #gradients between the hullpoints
-possiblePeriodCorners = []
 
 
 
@@ -533,13 +542,13 @@ g_two = 1
 highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*Period]
 if(highestx<100):
     highestx = 100
-numPeelings = 200
+numPeelings = 50
 periodReached  = False
 
 
 #VIEWSTUFF
 printstep = 0      #printstep == 1 -> jeder Schritt wird geprintet
-plot = 1         #plot ==1 -> Graphen werden geplottet
+plot = 0            #plot ==1 -> Graphen werden geplottet
 plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden geplottet
 
 
@@ -548,14 +557,14 @@ plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden gep
 #debugWriterDis = csvStuff.createWriter("../debuggerDisAll.csv")
 
 
-mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
+#mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
 
 #cProfile.run('main(highestx,numPeelings,printstep, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)')
 
-'''
+
 
 #For CSV stuff
-path = "../All Logs/Investigate Unglatt/"
+path = "../All Logs/Investigate Unglatt 1pt per H corrected/"
 
 
 os.mkdir(path)
@@ -600,4 +609,3 @@ for j in range(1,20,20):
 
                 mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
 
-'''
