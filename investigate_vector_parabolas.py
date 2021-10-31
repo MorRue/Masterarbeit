@@ -3,8 +3,6 @@ import csvStuff
 import calc
 import calcVerticalDis
 
-
-from mpl_toolkits.axisartist.axislines import SubplotZero
 import time
 import math
 import os
@@ -15,6 +13,7 @@ import matplotlib.ticker as plticker
 import numpy as np
 import pandas as pd
 import cProfile
+import operator
 
 #first transforms the grid by stretching it to the standard grid
 #then calculates the stretched a_one/a_two and calculates the period
@@ -258,18 +257,6 @@ def correctCorners(corners, xHull):
 
 def correctHull(xHull,yHull,corners,distances,yData):
 
-    
-    #
-    #Decomment to write Logs
-    #
-    
-    #csvStuff.writePeeling(debugWriterX,"vorher","xHull",xHull)
-    #csvStuff.writePeeling(debugWriterY,"vorher","yHull",yHull)
-    #csvStuff.writePeeling(debugWriterDis,"vorher","distances",distances)
-    #csvStuff.writePeeling(debugWriterCorners,"vorher","Corners",corners)
-
-
-
     start = int(len(distances)/3)
     periodDistances = calc.getPeriodDistances(start,len(distances),calculatePeriod(),distances)
 
@@ -281,18 +268,6 @@ def correctHull(xHull,yHull,corners,distances,yData):
     xHull, yHull, distances = correctLeftSide(start-1,periodDistances,xHull, yHull, distances,yData)
     corners = correctCorners(corners, xHull)
     #dif = initializeDif(corners,xHull,yHull)
-    
-    #
-    #Decomment to write Logs
-    #
-    
-    
-    #debugWriterX.writerow(xHull)
-    #debugWriterY.writerow(yHull)
-    #debugWriterDis.writerow(distances)
-    #debugWriterCorners.writerow(corners)
-    #debugWriterDif.writerow(dif)
-    
 
     return xHull,yHull,corners,distances
 
@@ -340,104 +315,8 @@ def initialize(size):
         possiblePeriodX.append(xdataHull[i])
         possiblePeriodY.append(ydataHull[i])
 
-#plots the x and y Values stretched back to the Z2 
-#x -> x/(g_two^2 * a_two * b_two)
 
-def plotRealValues(xValues,yValues):
-    xPlot = []
-    yPlot = []
-    for i in range(0,len(xValues)):
-        x = xValues[i]/(g_two*g_two*a_two*b_two)
-        y = yValues[i]/(g_two*g_two*a_two*b_two)
-        xPlot.append(x)
-        yPlot.append(y)
-    disPlot = calc.calc_distances_one(xPlot)
-    '''
-    debugWriterX.writerow(xPlot)
-    debugWriterY.writerow(yPlot)
-    debugWriterDis.writerow(disPlot)
-    '''
-    plt.scatter(xPlot[:20],yPlot[:20],s=10)
-    plt.plot(xPlot[:20],yPlot[:20])
-    #plt.scatter(xPlot[:20],yPlot[:20],s=10)
-    #plt.plot(xPlot[:20],yPlot[:20])
-
-def plot_hor_Period(xValues,yValues,period):
-    '''
-    f, (ax1, ax2) = plt.subplots(1, 2,sharey=True,sharex = True)
-
-    intervals = 1
-
-    loc = plticker.MultipleLocator(base=intervals)
-    
-    ax1.xaxis.set_major_locator(loc)
-    ax1.yaxis.set_major_locator(loc)
-    ax2.xaxis.set_major_locator(loc)
-    ax2.yaxis.set_major_locator(loc)
-    '''
-
-    f, (ax, ax2) = plt.subplots(1, 2,sharey=True,sharex = True)
-    
-
-    locx = plticker.MultipleLocator(base=1)
-    #locx.MAXTICKS= 694208142317
-    locy = plticker.MultipleLocator(base=1)
-    #locy.MAXTICKS= 694208142317
-    
-    ax.xaxis.set_major_locator(locx)
-    ax.yaxis.set_major_locator(locy)
-
-    ax2.xaxis.set_major_locator(locx)
-    ax2.yaxis.set_major_locator(locy) 
-
-    plt.gca().xaxis.grid(False)
-    
-    ax.grid(b= False, which='both', axis='both', linestyle='-',zorder =10)
-    ax2.grid(b= False, which='both', axis='both', linestyle='-',zorder =10)
-
-    ax.annotate("", xy=(10, 0), xytext=(-10, 0), arrowprops=dict(arrowstyle="->"))
-    ax.annotate("", xy=(0, 13), xytext=(0, -1), arrowprops=dict(arrowstyle="->"))
-    ax2.annotate("", xy=(10, 0), xytext=(-10, 0), arrowprops=dict(arrowstyle="->"))
-    ax2.annotate("", xy=(0, 13), xytext=(0, -1), arrowprops=dict(arrowstyle="->"))
-
-    x = np.linspace(-12,12,500)
-    y = (x**2)/7
-    #x = a_two*x*b_two
-    ax.plot(x,y, 'r', color = '0')
-  
-    xPlot = []
-    yPlot = []
-    for i in range(15,0,-1):
-        x = -1*xValues[i]/(g_two*g_two*a_two*b_two)
-        y = yValues[i]/(g_two*g_two*a_two*b_two)
-        xPlot.append(x)
-        yPlot.append(y)
-    for i in range(0,16):
-        x = xValues[i]/(g_two*g_two*a_two*b_two)
-        y = yValues[i]/(g_two*g_two*a_two*b_two)
-        xPlot.append(x)
-        yPlot.append(y)
-    ax.scatter(xPlot,yPlot,marker = '|',c='black',zorder = 200)
-    ax2.scatter(xPlot,[0]*len(xPlot),marker = '|', c='black',zorder = 200)
-    i=0
-   
-
-    for i in range(0,30,3):    
-        ax.plot(xPlot[i:i+2],yPlot[i:i+2],c = 'r')
-        ax.plot(xPlot[i+1:i+3],yPlot[i+1:i+3],c = 'b')
-        ax.plot(xPlot[i+2:i+4],yPlot[i+2:i+4],c = 'g')
-
-        ax2.plot(xPlot[i:i+2],[0]*len(xPlot[i:i+2]),c = 'r',zorder = 100)
-        ax2.plot(xPlot[i+1:i+3],[0]*len(xPlot[i+1:i+3]),c = 'b',zorder = 100)
-        ax2.plot(xPlot[i+2:i+4],[0]*len(xPlot[i+2:i+4]),c = 'g',zorder = 100)
-        ax2.plot(xPlot[i:i+2],yPlot[i:i+2],c = 'r',alpha = 0.5)
-        ax2.plot(xPlot[i+1:i+3],yPlot[i+1:i+3],c = 'b',alpha=0.5)
-        ax2.plot(xPlot[i+2:i+4],yPlot[i+2:i+4],c = 'g',alpha = 0.5)
-        '''
-        plt.plot(xPlot[i:i+2],[0,0],c = 'r',label=str(xPlot[i+1]-xPlot[i]))
-        plt.plot(xPlot[i+1:i+3],[0,0],c = 'b',label=str(xPlot[i+2]-xPlot[i+1]))
-        plt.plot(xPlot[i+2:i+4],[0,0],c = 'g', label=str(xPlot[i+3]-xPlot[i+2]))
-        '''
+#
 
 
 
@@ -501,22 +380,22 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
     #-> made gridsize 0.1 in vizualization...
     
     if plot == 1 or plotPeriod==1:
-        #intervals = float(getGrid()) #Spacing between each line of the displayed grid 
+        intervals = float(getGrid()) #Spacing between each line of the displayed grid 
         #intervals = float(getRealGrid())
-        #fig,ax=plt.subplots()
+        fig,ax=plt.subplots()
         #ax.set_xticklabels([]) 
         #ax.set_yticklabels([])
         
-        #locx = plticker.MultipleLocator(base=1)
+        locx = plticker.MultipleLocator(base=1)
         #locx.MAXTICKS= 694208142317
         locy = plticker.MultipleLocator(base=1)
         #locy.MAXTICKS= 694208142317
         
-        #ax.xaxis.set_major_locator(locx)
-        #ax.yaxis.set_major_locator(locy)
+        ax.xaxis.set_major_locator(locx)
+        ax.yaxis.set_major_locator(locy)
         
-        #plt.gca().xaxis.grid(False)
-        #ax.grid(b= False, which='both', axis='both', linestyle='-',zorder =10)
+        plt.gca().xaxis.grid(False)
+        ax.grid(b= False, which='both', axis='both', linestyle='-',zorder =10)
     
 
     initialize(highestx)
@@ -538,11 +417,12 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
         
     if plot == 1 or plotPeriod ==1:
         #plotSecondHalf(xdataHull,ydataHull)
-        plot_hor_Period(xdataHull,ydataHull,0)
+
+        plotRealValues(xdataHull,ydataHull)
         #plotRealValuesTranslate(xdataHull,ydataHull,0)
 
     
-    '''
+
     #for i in range(1,numsteps):
     
     i=0
@@ -550,6 +430,23 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
         i = i+1
         oneStep()
         #print(xdataHull[len(xdataHull)-1]/a_two/b_two)
+        '''
+        x_max,dis_max = calcVerticalDis.getMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
+        x_min, dis_min = calcVerticalDis.getMinDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
+        dis_max = dis_max-dis_min
+        line = [a_one,a_two,b_one,b_two,i,x_min,dis_min,x_max,dis_max]
+
+
+        #dis_all = calcVerticalDis.getAllMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
+        #x,y = calc.getBothFromOne(dis_all)
+        #plt.plot(x,y)
+
+        line = [a_one,a_two,b_one,b_two,0,x_min,dis_min,x_max,dis_max]
+        #print("Peeling:",0,x_min,dis_min,x_max,dis_max)
+        #debugWriterDis.writerow(line)
+        #distanceWriter.writerow(line)
+        #print("Peeling",i,": x-Val des min. Abst.:",x_min,", Min. Abst.:",round(dis_min,4),", x-Val des max. Abst.:",x_max,", Max. Abs:",dis_max)
+        '''
         if plot == 1:
             #plotSecondHalf(xdataHull,ydataHull)
             plotRealValues(xdataHull,ydataHull)
@@ -603,9 +500,8 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
         plt.plot(x,y, 'r', color = '0')
         
         plt.show()
-    '''
-    plt.legend()
-    plt.show()
+
+
 
 
 
@@ -625,7 +521,7 @@ data_line = []      #line which gets written in CSV
 
 # PARABOLA COEFFICIENTS
 a_one = 1            #a_one , a_two , b_one and b_two are the Nenner(two) and Zaehler(one) from f(x) = ax^2 + bx
-a_two = 7
+a_two = 44
 b_one = 0
 b_two = 1       # b_two must be unequal 0! and should be equal to 1 if b_one == 0
 
@@ -651,6 +547,65 @@ plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden gep
 #debugWriterY = csvStuff.createWriter("../debuggerY.csv")
 #debugWriterDis = csvStuff.createWriter("../debuggerDisAll.csv")
 
-mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
+#mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
 
 #cProfile.run('mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)')
+
+def getStartingParabola(n):
+    toInvestigateX = [0]
+    toInvestigateY = [0]
+    grad = []
+    output = [[0,0,0]]
+    for i in range(0,n+1):
+        for j in range(abs(i),n+1):
+            if(i==0):
+                continue
+            else:
+                ggt = calc.ggT(j,i)
+                toInvestigateX.append(j/ggt)
+                toInvestigateY.append(i/ggt)
+                grad.append(i/float(j))
+                output.append([j/ggt,i/ggt,i/float(j)]) #x,y,grad
+    return toInvestigateX,toInvestigateY,grad,output
+
+def plotRealParabola(a_two,border):
+        mostrightx = border
+        leftrightx = -1*border
+
+        x = np.linspace(leftrightx,mostrightx,1000)
+        y = (x**2)/a_two
+        #x = a_two*x*b_two
+        plt.plot(x,y, 'r', color = '0')
+
+
+
+def getGraph(allList):
+    halfX= [0]
+    halfY= [0]
+    for i in range(1,len(allList)): #punktmenge erzeugen
+        halfX.append(allList[i][0]+halfX[-1])
+        halfY.append(allList[i][1]+halfY[-1])
+    print(halfY)
+    x = []
+    y = []
+
+    for i in range(len(halfX)-1,0,-1):
+        x.append(halfX[i]*-1)
+        y.append(halfY[i])
+    for i in range(0,len(halfX)):
+        x.append(halfX[i])
+        y.append(halfY[i])
+    return x,y
+
+
+x,y,grad,all = getStartingParabola(5) #all enthält x,y,grad mit 0<y<=x<=t der Input-wert ist dabei t
+s = sorted(all, key = operator.itemgetter(2)) #nach Steigung sortieren
+
+
+plotX,plotY = getGraph(s)   #macht vektoren zu x,y-Werten - allerdings auch Werte, die auf einer Strecke liegen!
+
+#                n
+plotRealParabola(86,plotX[-1])       #plottet die Parabel 1/n
+
+plt.plot(plotX,plotY)
+plt.show()

@@ -1,4 +1,5 @@
 
+#returns the x-value and distance of the point with the furthest distance
 def getMaxDistance(a_one,a_two,b_one,b_two,xVals,yVals):
     max = 0
     x = 0
@@ -17,6 +18,7 @@ def getMaxDistance(a_one,a_two,b_one,b_two,xVals,yVals):
             #x,f,g = x_tmp,f_x_tmp,g_x_tmp
     return x,max
 
+#returns the biggest distance of all lineare Teilstücke 
 def getAllMaxDistance(a_one,a_two,b_one,b_two,xVals,yVals):
     max = 0
     x = 0
@@ -35,7 +37,7 @@ def getAllMaxDistance(a_one,a_two,b_one,b_two,xVals,yVals):
         dis.append([x,dist])
     return dis
 
-
+#returns the x-value and distance of the point with the smallest distance
 def getMinDistance(a_one,a_two,b_one,b_two,xVals,yVals):
     min = -1
     x = 0

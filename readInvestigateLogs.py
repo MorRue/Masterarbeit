@@ -1,5 +1,7 @@
 from matplotlib.ticker import Formatter
 
+import matplotlib.pyplot as plt
+
 import math
 import calc
 import csvStuff
@@ -31,9 +33,11 @@ def findMaxZeros(array):
         else:
             count = 0
     return max
-        
+
+
+#writes logs for all subfolders which contain the steigungsdifferenz between the linearen Teilstücke
 def investigateVerticalHullDiff():
-    Foldername = "Investigate a=1|44"
+    Foldername = "Investigate Pattern"
     pathToLogs = f"../All Logs/{Foldername}/Logs/"
     pathToLogAll = f"../All Logs/{Foldername}/"
 
@@ -54,7 +58,7 @@ def investigateVerticalHullDiff():
         yPath = name+"debuggerY.csv"
         xPath = name+"debuggerX.csv"
         print("a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g=1|1")
-        AngleWriter,file = csvStuff.createWriter(name+"AngleDiffRound.csv")
+        AngleWriter,file = csvStuff.createWriter(name+"AngleDiff4Round.csv")
 
         yReader = csvStuff.createReader(yPath)
         xReader = csvStuff.createReader(xPath)
@@ -64,11 +68,15 @@ def investigateVerticalHullDiff():
             for i in range(1,len(x)-1):
                 gradOne = (int(y[i])-int(y[i-1]))/(int(x[i])-int(x[i-1]))
                 gradTwo = (int(y[i+1])-int(y[i]))/(int(x[i+1])-int(x[i]))
+                if((int(x[i])-int(x[i-1]))/a_two/b_two - int((int(x[i])-int(x[i-1]))/a_two/b_two)!=0):
+                    print("Hello")
+                xDif = int((int(x[i])-int(x[i-1]))/a_two/b_two)
+                for j in range(0,xDif-1):
+                    line.append('x')
                 line.append(round(gradTwo-gradOne,5))
             AngleWriter.writerow(line)
         file.close()
 
-investigateVerticalHullDiff()
                 
 
 def investigateConcurrentZeros():
@@ -117,8 +125,24 @@ def investigateConcurrentZeros():
 
 
 
+def disPlayTime(pathtoTimeLog):
+    timeReader = csvStuff.createReader(pathtoTimeLog)
 
-
+    next(timeReader)
+    nums=[]
+    times = []
+    for row in timeReader:
+        a_one = int(row[0])
+        a_two = int(row[1])
+        numx = int(row[2])
+        time = float(row[3])
+        nums.append(numx)
+        times.append(time)
+    print(times)
+    plt.scatter(nums,times)
+    plt.show()
+        
+disPlayTime("../Investigate Specific/Investigate Time2/time.csv")
 
 def investigateConcurrentOnes():
     Foldername = "Investigate Pattern"
@@ -252,3 +276,5 @@ def writeZusammenfassung():
                         count=1
                 else:
                     count+=1
+
+

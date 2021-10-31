@@ -1,3 +1,4 @@
+
 from numpy.lib.function_base import diff
 import csvStuff
 import calc
@@ -362,7 +363,8 @@ def plotRealValues(xValues,yValues):
     #plt.scatter(xPlot[:20],yPlot[:20],s=10)
     #plt.plot(xPlot[:20],yPlot[:20])
 
-def plot_hor_Period(xValues,yValues,period):
+
+def plot_hor_Period_three(xValues,yValues,a_two):
     '''
     f, (ax1, ax2) = plt.subplots(1, 2,sharey=True,sharex = True)
 
@@ -376,7 +378,7 @@ def plot_hor_Period(xValues,yValues,period):
     ax2.yaxis.set_major_locator(loc)
     '''
 
-    f, (ax, ax2) = plt.subplots(1, 2,sharey=True,sharex = True)
+    f, (ax) = plt.subplots(1, 1)
     
 
     locx = plticker.MultipleLocator(base=1)
@@ -387,21 +389,84 @@ def plot_hor_Period(xValues,yValues,period):
     ax.xaxis.set_major_locator(locx)
     ax.yaxis.set_major_locator(locy)
 
-    ax2.xaxis.set_major_locator(locx)
-    ax2.yaxis.set_major_locator(locy) 
+
 
     plt.gca().xaxis.grid(False)
     
     ax.grid(b= False, which='both', axis='both', linestyle='-',zorder =10)
-    ax2.grid(b= False, which='both', axis='both', linestyle='-',zorder =10)
 
     ax.annotate("", xy=(10, 0), xytext=(-10, 0), arrowprops=dict(arrowstyle="->"))
     ax.annotate("", xy=(0, 13), xytext=(0, -1), arrowprops=dict(arrowstyle="->"))
-    ax2.annotate("", xy=(10, 0), xytext=(-10, 0), arrowprops=dict(arrowstyle="->"))
-    ax2.annotate("", xy=(0, 13), xytext=(0, -1), arrowprops=dict(arrowstyle="->"))
+
+
+    x = np.linspace(-12,30,500)
+    y = (x**2)/a_two
+    #x = a_two*x*b_two
+    ax.plot(x,y, 'r', color = '0')
+  
+    xPlot = []
+    yPlot = []
+    for i in range(10,0,-1):
+        x = -1*xValues[i]/(g_two*g_two*a_two*b_two)
+        y = yValues[i]/(g_two*g_two*a_two*b_two)
+        xPlot.append(x)
+        yPlot.append(y)
+    for i in range(0,11):
+        x = xValues[i]/(g_two*g_two*a_two*b_two)
+        y = yValues[i]/(g_two*g_two*a_two*b_two)
+        xPlot.append(x)
+        yPlot.append(y)
+    ax.scatter(xPlot,yPlot,marker = '|',c='black',zorder = 200)
+    i=0
+   
+
+    for i in range(0,20,3):    
+        ax.plot(xPlot[i:i+2],yPlot[i:i+2],c = 'r')
+        ax.plot(xPlot[i+1:i+3],yPlot[i+1:i+3],c = 'b')
+        ax.plot(xPlot[i+2:i+4],yPlot[i+2:i+4],c = 'g')
+
+
+        '''
+        plt.plot(xPlot[i:i+2],[0,0],c = 'r',label=str(xPlot[i+1]-xPlot[i]))
+        plt.plot(xPlot[i+1:i+3],[0,0],c = 'b',label=str(xPlot[i+2]-xPlot[i+1]))
+        plt.plot(xPlot[i+2:i+4],[0,0],c = 'g', label=str(xPlot[i+3]-xPlot[i+2]))
+        '''
+
+
+def plot_hor_Period_one(xValues,yValues,a_two):
+    '''
+    f, (ax1, ax2) = plt.subplots(1, 2,sharey=True,sharex = True)
+
+    intervals = 1
+
+    loc = plticker.MultipleLocator(base=intervals)
+    
+    ax1.xaxis.set_major_locator(loc)
+    ax1.yaxis.set_major_locator(loc)
+    ax2.xaxis.set_major_locator(loc)
+    ax2.yaxis.set_major_locator(loc)
+    '''
+
+    f, ax = plt.subplots(1, 1)
+    
+
+    locx = plticker.MultipleLocator(base=1)
+    #locx.MAXTICKS= 694208142317
+    locy = plticker.MultipleLocator(base=1)
+    #locy.MAXTICKS= 694208142317
+    
+    ax.xaxis.set_major_locator(locx)
+    ax.yaxis.set_major_locator(locy)
+
+    plt.gca().xaxis.grid(False)
+    
+    ax.grid(b= False, which='both', axis='both', linestyle='-',zorder =10)
+
+    ax.annotate("", xy=(10, 0), xytext=(-10, 0), arrowprops=dict(arrowstyle="->"))
+    ax.annotate("", xy=(0, 13), xytext=(0, -1), arrowprops=dict(arrowstyle="->"))
 
     x = np.linspace(-12,12,500)
-    y = (x**2)/7
+    y = (x**2)/a_two
     #x = a_two*x*b_two
     ax.plot(x,y, 'r', color = '0')
   
@@ -418,27 +483,9 @@ def plot_hor_Period(xValues,yValues,period):
         xPlot.append(x)
         yPlot.append(y)
     ax.scatter(xPlot,yPlot,marker = '|',c='black',zorder = 200)
-    ax2.scatter(xPlot,[0]*len(xPlot),marker = '|', c='black',zorder = 200)
     i=0
    
-
-    for i in range(0,30,3):    
-        ax.plot(xPlot[i:i+2],yPlot[i:i+2],c = 'r')
-        ax.plot(xPlot[i+1:i+3],yPlot[i+1:i+3],c = 'b')
-        ax.plot(xPlot[i+2:i+4],yPlot[i+2:i+4],c = 'g')
-
-        ax2.plot(xPlot[i:i+2],[0]*len(xPlot[i:i+2]),c = 'r',zorder = 100)
-        ax2.plot(xPlot[i+1:i+3],[0]*len(xPlot[i+1:i+3]),c = 'b',zorder = 100)
-        ax2.plot(xPlot[i+2:i+4],[0]*len(xPlot[i+2:i+4]),c = 'g',zorder = 100)
-        ax2.plot(xPlot[i:i+2],yPlot[i:i+2],c = 'r',alpha = 0.5)
-        ax2.plot(xPlot[i+1:i+3],yPlot[i+1:i+3],c = 'b',alpha=0.5)
-        ax2.plot(xPlot[i+2:i+4],yPlot[i+2:i+4],c = 'g',alpha = 0.5)
-        '''
-        plt.plot(xPlot[i:i+2],[0,0],c = 'r',label=str(xPlot[i+1]-xPlot[i]))
-        plt.plot(xPlot[i+1:i+3],[0,0],c = 'b',label=str(xPlot[i+2]-xPlot[i+1]))
-        plt.plot(xPlot[i+2:i+4],[0,0],c = 'g', label=str(xPlot[i+3]-xPlot[i+2]))
-        '''
-
+    ax.plot(xPlot,yPlot,c='b')
 
 
 # makes one step of the gridPeeling and updates the hull values
@@ -538,7 +585,12 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
         
     if plot == 1 or plotPeriod ==1:
         #plotSecondHalf(xdataHull,ydataHull)
-        plot_hor_Period(xdataHull,ydataHull,0)
+        if(a_two==1):
+            plot_hor_Period_one(xdataHull,ydataHull,a_two)
+        if(a_two==10):
+            plot_hor_Period_three(xdataHull,ydataHull,a_two)
+        if(a_two==28):
+            plot_hor_Period_three(xdataHull,ydataHull,a_two)
         #plotRealValuesTranslate(xdataHull,ydataHull,0)
 
     
@@ -651,6 +703,8 @@ plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden gep
 #debugWriterY = csvStuff.createWriter("../debuggerY.csv")
 #debugWriterDis = csvStuff.createWriter("../debuggerDisAll.csv")
 
-mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
+mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,1, b_one , b_two, g_one,g_two)
+mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,10, b_one , b_two, g_one,g_two)
+mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,28, b_one , b_two, g_one,g_two)
 
 #cProfile.run('mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)')
