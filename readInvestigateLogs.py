@@ -1,6 +1,9 @@
-from matplotlib.ticker import Formatter
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as plticker
+from mpl_toolkits.mplot3d import Axes3D
+
+
 
 import math
 import calc
@@ -77,7 +80,45 @@ def investigateVerticalHullDiff():
             AngleWriter.writerow(line)
         file.close()
 
-                
+ 
+def plot2d(xdata,ydata):
+    fig,ax=plt.subplots()
+    #ax.set_xticklabels([]) 
+    #ax.set_yticklabels([])
+    locy = plticker.MultipleLocator(base=1)
+    locy.MAXTICKS= 694208142317
+    locx = plticker.MultipleLocator(base=0.5)
+    locx.MAXTICKS= 694208142317
+    ax.xaxis.set_major_locator(locx)
+    ax.yaxis.set_major_locator(locy)
+    ax.xaxis.set_label_text("a")
+    ax.yaxis.set_label_text("vertical Period")
+    ax.grid(b= True, which='major', axis='both', linestyle='-')
+    plt.scatter(xdata,ydata)
+    plt.show()
+
+
+
+def plot3d(xdata,ydata,zdata):
+    fig = plt.figure()
+    ax = Axes3D(fig)
+    #ax = fig.add_subplot(111, projection='3d')
+    #ax.set_xticklabels([]) 
+    #ax.set_yticklabels([])
+    #locy = plticker.MultipleLocator(base=10)
+    #locy.MAXTICKS= 694208142317
+    #locx = plticker.MultipleLocator(base=0.1)
+    #locx.MAXTICKS= 694208142317
+    #ax.xaxis.set_major_locator(locx)
+    #ax.yaxis.set_major_locator(locy)
+    #ax.zaxis.set_major_locator(locy)
+    ax.xaxis.set_label_text("a")
+    ax.yaxis.set_label_text("b")
+    ax.zaxis.set_label_text("Steps")
+    ax.grid(b= True, which='major', axis='both', linestyle='-')
+    ax.scatter(xdata,zdata,ydata,zdir='z')
+    plt.show()
+    #ax.show()                 
 
 def investigateConcurrentZeros():
     Foldername = "Investigate Pattern"
@@ -142,7 +183,34 @@ def disPlayTime(pathtoTimeLog):
     plt.scatter(nums,times)
     plt.show()
         
-disPlayTime("../Investigate Specific/Investigate Time2/time.csv")
+
+def disPlayVerticalPeriod(pathtoAllLog,dimension):
+    timeReader = csvStuff.createReader(pathtoAllLog)
+
+    next(timeReader)
+    a=[]
+    b = []
+    vertical_Period = []
+    for row in timeReader:
+        if(len(row) >7):
+            a_one = int(row[0])
+            a_two = int(row[1])
+            b_one = int(row[2])
+            b_two = int(row[3])
+            steps_two = int(row[7])
+            if(dimension == 3 or b_one == 0):
+                if(steps_two<20):
+                    a.append(a_one/float(a_two))
+                    b.append(b_one/float(b_two))
+                    vertical_Period.append(steps_two)
+    if(dimension==2):     
+        plot2d(a,vertical_Period)
+    if(dimension == 3):
+        plot2d(a,vertical_Period)
+        
+disPlayVerticalPeriod("../Investigate Specific/Dataset/LogAll.csv",2)
+
+
 
 def investigateConcurrentOnes():
     Foldername = "Investigate Pattern"

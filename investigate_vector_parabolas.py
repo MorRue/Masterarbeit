@@ -189,14 +189,15 @@ def make_para_convex(xdata,ydata):
     return xdataHull,ydataHull
 
 
-def correctRightSide(startIndex,endIndex, xHull, yHull, distances, periodDistances,yAll):
+def correctRightSide(startIndex,endIndex, xHull, yHull, distances, periodDistances,yAll,xAll):
     index = 0
     for i in range(startIndex,endIndex):
         #if(distances[i]!=periodDistances[index]):
         distances[i]=periodDistances[index]
         xHull[i+1]=xHull[i]+distances[i]
-        elementindex = int(round(xHull[i+1]/(a_two*g_two*g_one*b_two),0))
-        if(elementindex<len(yAll)):
+        if(xHull[i+1] in xAll):
+            elementindex = xAll.index(xHull[i+1])
+
             yHull[i+1] = yAll[elementindex]
             index+=1
             if(index==len(periodDistances)):
@@ -215,14 +216,14 @@ def correctRightSide(startIndex,endIndex, xHull, yHull, distances, periodDistanc
             return xHull, yHull, distances
     return xHull, yHull, distances
 
-def correctLeftSide(leftStartIndex, periodDistances, xHull, yHull, distances,yAll):
+def correctLeftSide(leftStartIndex, periodDistances, xHull, yHull, distances,yAll,xAll):
     index = len(periodDistances)-1
     for i in range(leftStartIndex,-1,-1):
         #if(distances[i]!=periodDistances[index]):
-        if(xHull[i+1]-periodDistances[index]>=0):
+        if(xHull[i+1]-periodDistances[index]>=xAll[0]):
             distances[i]=periodDistances[index]
             xHull[i]=xHull[i+1]-distances[i]
-            elementindex = int(round(xHull[i]/(a_two*g_two*g_one*b_two),0))
+            elementindex = xAll.index(xHull[i])
             yHull[i] = yAll[elementindex]
             index-=1
             if(index==-1):
@@ -243,33 +244,114 @@ def correctLeftSide(leftStartIndex, periodDistances, xHull, yHull, distances,yAl
             return xHull, yHull, distances
     return xHull, yHull, distances
 
-def correctCorners(corners, xHull):
+def correctCorners(corners, xHull,xAll):
     #gridVar = getGrid()
 
     for i in range(0,len(corners)):
         corners[i]=0
 
     for i in range(0,len(xHull)):
-        elementindex = int(round(xHull[i]/(a_two*g_two*g_one*b_two),0))
+        elementindex = xAll.index(xHull[i])
         corners[elementindex]=1
  
     return corners
 
-def correctHull(xHull,yHull,corners,distances,yData):
+def correctHull(xHull,yHull,corners,distances,yData,xData):
 
     start = int(len(distances)/3)
-    periodDistances = calc.getPeriodDistances(start,len(distances),calculatePeriod(),distances)
+    periodDistances = calc.getPeriodDistances(start,len(distances),a_two,distances)
 
     if(periodDistances == -1):
         print("problem")
         return -1
     
-    xHull, yHull, distances = correctRightSide(start+len(periodDistances),len(distances),xHull, yHull, distances, periodDistances,yData)
-    xHull, yHull, distances = correctLeftSide(start-1,periodDistances,xHull, yHull, distances,yData)
-    corners = correctCorners(corners, xHull)
+    xHull, yHull, distances = correctRightSide(start+len(periodDistances),len(distances),xHull, yHull, distances, periodDistances,yData,xData)
+    xHull, yHull, distances = correctLeftSide(start-1,periodDistances,xHull, yHull, distances,yData,xData)
+    corners = correctCorners(corners, xHull,xData)
     #dif = initializeDif(corners,xHull,yHull)
 
     return xHull,yHull,corners,distances
+
+def getStartingParabola(n):
+    toInvestigateX = [0]
+    toInvestigateY = [0]
+    grad = []
+    output = [[0,0,0]]
+
+    toInvestigateX.append(int(n/2))
+    toInvestigateY.append(0)
+    grad.append(0)
+    output.append([int(n/2),0,0]) #x,y,grad
+    for i in range(0,n+1):
+        for j in range(abs(i),n+1):
+            if(i==0):
+                continue
+            else:
+                ggt = calc.ggT(j,i)
+                toInvestigateX.append(j/ggt)
+                toInvestigateY.append(i/ggt)
+                grad.append(i/float(j))
+                output.append([j/ggt,i/ggt,i/float(j)]) #x,y,grad
+    return toInvestigateX,toInvestigateY,grad,output
+
+def plotRealParabola(a_two,border):
+        mostrightx = border
+        leftrightx = -1*border
+
+        x = np.linspace(leftrightx,mostrightx,1000)
+        y = (x**2)/a_two
+        #x = a_two*x*b_two
+        plt.plot(x,y, 'r', color = '0')
+
+
+
+def getGraph(allList):
+    halfX= [0]
+    halfY= [0]
+    for i in range(1,len(allList)): #punktmenge erzeugen
+        halfX.append(allList[i][0]+halfX[-1])
+        halfY.append(allList[i][1]+halfY[-1])
+    x = []
+    y = []
+
+    for i in range(len(halfX)-1,0,-1):
+        x.append(halfX[i]*-1)
+        y.append(halfY[i])
+    for i in range(0,len(halfX)):
+        x.append(halfX[i])
+        y.append(halfY[i])
+    return x,y
+
+
+
+def getAllData(plotX,plotY):
+    xData= [0]
+    yData= [0]
+
+    rightSideX = plotX[int((len(plotX)-1)/2):len(plotX)]
+    rightSideY = plotY[int((len(plotY)-1)/2):len(plotY)]
+
+    #s = [[x,y,grad]]
+    for i in range(0,len(rightSideX)-1):
+        curX,curY = xData[-1],yData[-1]
+        rangeX = int(rightSideX[i+1])-int(rightSideX[i])  #deltaX
+        rangeY = int(rightSideY[i+1])-int(rightSideY[i])  #deltaY
+        for x in range(1,rangeX+1):
+            xData.append(curX+x)
+            for y in range(0,rangeY+1):
+                if(curY*rangeX + x*rangeY <= (curY+y)*rangeX):
+                    yData.append(curY+y)
+                    break
+    x = []
+    y = []
+
+    for i in range(len(xData)-1,0,-1):
+        x.append(xData[i]*-1)
+        y.append(yData[i])
+    for i in range(0,len(xData)):
+        x.append(xData[i])
+        y.append(yData[i])
+    return x,y
 
 
 #fills the array yData with f(x) rounded up to the grid
@@ -279,7 +361,7 @@ def correctHull(xHull,yHull,corners,distances,yData):
 #corners[i] == 0 -> ith element from yData is not in the hull
 #xdataHull and ydataHull save the x and y values of the points which are in the hull
 
-def initialize(size):
+def initialize(n):
     global corners,yData,xdataHull,ydataHull,distances,possiblePeriodX,possiblePeriodY,xData
     '''
     del corners[:]
@@ -301,16 +383,24 @@ def initialize(size):
 
     #gridVar = getGrid()
 
+    x,y,grad,all = getStartingParabola(n) #all enthält x,y,grad mit 0<y<=x<=t der Input-wert ist dabei t
+    s = sorted(all, key = operator.itemgetter(2)) #nach Steigung sortieren
+
+    plotX,plotY = getGraph(s)   #macht vektoren zu x,y-Werten - allerdings auch Werte, die auf einer Strecke liegen!
+
+    xData,yData = getAllData(plotX,plotY)
+
+
+
     #calculate the bottom y-value for every x-value and add all points to the hull
-    for i in range (0,size):
+    for i in range (0,len(xData)):
         corners.append(1)
-        xData.append(transformNormalToInt(i))
-        yData.append(parabola_func(i))
+
 
 
     xdataHull,ydataHull = make_para_convex(xData,yData)     #make the hull convex by removing the "inner" points,
     distances = calc.calc_distances_one(xdataHull)
-    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData)
+    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData,xData)
     for i in range(0,len(xdataHull)):
         possiblePeriodX.append(xdataHull[i])
         possiblePeriodY.append(ydataHull[i])
@@ -335,14 +425,14 @@ def oneStep():
     
     for i in range (0,len(corners)):
         if corners[i]==1:
-            yData[i] = yData[i]+ gridVar
+            yData[i] = yData[i]+ 1
 
         corners[i]=1
  
     
     xdataHull,ydataHull = make_para_convex(xData,yData) #make the hull convex by removing the "inner" points 
     distances = calc.calc_distances_one(xdataHull)
-    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData)
+    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData,xData)
 
 
 def testPeriod(ydata,possibleY):
@@ -372,7 +462,7 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
     data_line.append(g_two)
     
     numsteps = numPeelings       #number of gridpeelings
-    highestx = numX
+    n = numX
     
 
 
@@ -398,10 +488,13 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
         ax.grid(b= False, which='both', axis='both', linestyle='-',zorder =10)
     
 
-    initialize(highestx)
-    print("period:",calculatePeriod()/a_two/b_two)
+    initialize(n)
     #print(corners)
 
+    if(plot ==1):
+        plt.scatter(xdataHull,ydataHull)
+
+        plt.plot(xdataHull,ydataHull)
     '''
     x_max,dis_max = calcVerticalDis.getMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
     x_min, dis_min = calcVerticalDis.getMinDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
@@ -415,11 +508,7 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
     #print("initialized")    
     '''
         
-    if plot == 1 or plotPeriod ==1:
-        #plotSecondHalf(xdataHull,ydataHull)
 
-        plotRealValues(xdataHull,ydataHull)
-        #plotRealValuesTranslate(xdataHull,ydataHull,0)
 
     
 
@@ -447,46 +536,39 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
         #distanceWriter.writerow(line)
         #print("Peeling",i,": x-Val des min. Abst.:",x_min,", Min. Abst.:",round(dis_min,4),", x-Val des max. Abst.:",x_max,", Max. Abs:",dis_max)
         '''
-        if plot == 1:
-            #plotSecondHalf(xdataHull,ydataHull)
-            plotRealValues(xdataHull,ydataHull)
-            #plotRealValuesTranslate(xdataHull,ydataHull,0.2*i)
+        if(plot ==1):
+            plt.scatter(xdataHull,ydataHull)
+            plt.plot(xdataHull,ydataHull)       
 
-        
 
-        if(xdataHull[0]==0):
+        if(xdataHull==possiblePeriodX and testPeriod(ydataHull,possiblePeriodY)):
+            if(periodReached == True):
+                data_line.append(i-data_line[len(data_line)-1])
+                print("vertical Period: ",data_line[-1])
+                data_line.append(getHorizontalPeriod(a_two,b_two))
+                print("-------Period found!--------")
+                #data_line.append([x_min,dis_min,x_max,dis_max])
+                #
+                #Decomment to write Logs
+                #                    
+                #globalWriter.writerow(data_line)
 
-            count = count+1
-            if(xdataHull==possiblePeriodX and (testPeriod(ydataHull,possiblePeriodY) == False)):
-                data_line.append("x")
+                break
+            periodReached = True
+            #print(ydataHull[0]/(b_two*a_two))
+            data_line.append(i)
+        '''
+        elif(math.ceil(math.log2(count)) == math.log2(count) and periodReached == False):
+            del possiblePeriodX[:]
+            del possiblePeriodY[:]
+            
+            #possiblePeriodX = list(xdataHull)
+            #possiblePeriodX = []
 
-            if(xdataHull==possiblePeriodX and testPeriod(ydataHull,possiblePeriodY)):
-                if(periodReached == True):
-                    data_line.append(i-data_line[len(data_line)-1])
-                    print(data_line[-1])
-                    data_line.append(getHorizontalPeriod(a_two,b_two))
-                    print("-------Period found!--------")
-                    #data_line.append([x_min,dis_min,x_max,dis_max])
-                    #
-                    #Decomment to write Logs
-                    #                    
-                    #globalWriter.writerow(data_line)
-
-                    break
-                periodReached = True
-                #print(ydataHull[0]/(b_two*a_two))
-                data_line.append(i)
-
-            elif(math.ceil(math.log2(count)) == math.log2(count) and periodReached == False):
-                del possiblePeriodX[:]
-                del possiblePeriodY[:]
-                
-                #possiblePeriodX = list(xdataHull)
-                #possiblePeriodX = []
-
-                for k in range(0,len(xdataHull)):
-                    possiblePeriodX.append(xdataHull[k])
-                    possiblePeriodY.append(ydataHull[k])
+            for k in range(0,len(xdataHull)):
+                possiblePeriodX.append(xdataHull[k])
+                possiblePeriodY.append(ydataHull[k])
+        '''
                 
      
     if plot == 1 or plotPeriod==1:
@@ -547,65 +629,28 @@ plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden gep
 #debugWriterY = csvStuff.createWriter("../debuggerY.csv")
 #debugWriterDis = csvStuff.createWriter("../debuggerDisAll.csv")
 
-#mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
-
-#cProfile.run('mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)')
-
-def getStartingParabola(n):
-    toInvestigateX = [0]
-    toInvestigateY = [0]
-    grad = []
-    output = [[0,0,0]]
-    for i in range(0,n+1):
-        for j in range(abs(i),n+1):
-            if(i==0):
-                continue
-            else:
-                ggt = calc.ggT(j,i)
-                toInvestigateX.append(j/ggt)
-                toInvestigateY.append(i/ggt)
-                grad.append(i/float(j))
-                output.append([j/ggt,i/ggt,i/float(j)]) #x,y,grad
-    return toInvestigateX,toInvestigateY,grad,output
-
-def plotRealParabola(a_two,border):
-        mostrightx = border
-        leftrightx = -1*border
-
-        x = np.linspace(leftrightx,mostrightx,1000)
-        y = (x**2)/a_two
-        #x = a_two*x*b_two
-        plt.plot(x,y, 'r', color = '0')
 
 
+'''
+             n
+ 1/a    |  Übergang |  
+-------------------
+1/2   ->  1-2      
+1/8   ->  2-3     
+1/22  ->  3-4     
+1/44  ->  4-5             
+1/86  ->  5-6              
+1/128 ->  6-7                 
+1/214 ->  7-8              
+1/300 ->  8-9
+1/422 ->  9-10
+1/548 -> 10-11
+1/770
+1/924
 
-def getGraph(allList):
-    halfX= [0]
-    halfY= [0]
-    for i in range(1,len(allList)): #punktmenge erzeugen
-        halfX.append(allList[i][0]+halfX[-1])
-        halfY.append(allList[i][1]+halfY[-1])
-    print(halfY)
-    x = []
-    y = []
+'''
+a_half = 22
+n = 4
 
-    for i in range(len(halfX)-1,0,-1):
-        x.append(halfX[i]*-1)
-        y.append(halfY[i])
-    for i in range(0,len(halfX)):
-        x.append(halfX[i])
-        y.append(halfY[i])
-    return x,y
+mainTwo(n,numPeelings, plot,plotPeriod,a_one,a_half, b_one , b_two, g_one,g_two)
 
-
-x,y,grad,all = getStartingParabola(5) #all enthält x,y,grad mit 0<y<=x<=t der Input-wert ist dabei t
-s = sorted(all, key = operator.itemgetter(2)) #nach Steigung sortieren
-
-
-plotX,plotY = getGraph(s)   #macht vektoren zu x,y-Werten - allerdings auch Werte, die auf einer Strecke liegen!
-
-#                n
-plotRealParabola(86,plotX[-1])       #plottet die Parabel 1/n
-
-plt.plot(plotX,plotY)
-plt.show()

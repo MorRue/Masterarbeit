@@ -18,10 +18,13 @@ import cProfile
 #then calculates the stretched a_one/a_two and calculates the period
 
 def calculatePeriod():
-    global a_one,a_two,b_one,b_two,g_one,g_two
-    if b_one == 0:
-        a_one_stretched = a_one * g_one
-        a_two_stretched = a_two * g_two
+    global a_one,a_two,b_one,b_two,g_one,g_two  #parabola coefficients and grid variables
+    
+    #case that there is no linear part in the parabola function
+    if b_one == 0:                              
+        a_one_stretched = a_one * g_one         #stretch parabola to standard grid
+        a_two_stretched = a_two * g_two         #
+
         a_one_stretched, a_two_stretched = calc.bruchKuerzen(a_one_stretched,a_two_stretched)
         if(a_two_stretched%4 == 0):
             a_two_stretched = a_two_stretched*g_two*a_two*b_two
@@ -166,8 +169,6 @@ def make_para_convex(xdata,ydata):
         if(l>=1):
             gradOne = (ydataHull[l]-ydataHull[l-1]) * (xdata[k]-xdataHull[l])
             gradTwo = (ydata[k]-ydataHull[l]) * (xdataHull[l]-xdataHull[l-1])
-            #gradOne = math.atan2(ydataHull[l]-ydataHull[l-1],xdataHull[l]-xdataHull[l-1])
-            #gradTwo = math.atan2(ydata[k]-ydataHull[l],xdata[k]-xdataHull[l])
             while(l>=1 and gradOne >= gradTwo):
                 xdataHull.pop()
                 ydataHull.pop()
@@ -175,14 +176,15 @@ def make_para_convex(xdata,ydata):
                 if(l>=1):
                     gradOne = (ydataHull[l]-ydataHull[l-1]) * (xdata[k]-xdataHull[l])
                     gradTwo = (ydata[k]-ydataHull[l]) * (xdataHull[l]-xdataHull[l-1])
-                    #gradOne = math.atan2(ydataHull[l]-ydataHull[l-1],xdataHull[l]-xdataHull[l-1])
-                    #gradTwo = math.atan2(ydata[k]-ydataHull[l],xdata[k]-xdataHull[l])
+
         l += 1
         xdataHull.append(xdata[k])
         ydataHull.append(ydata[k])
     return xdataHull,ydataHull
 
 
+
+#receives the calculated corners of the convex hull (xHull,yHull) and the distances inbetween the 
 def correctRightSide(startIndex,endIndex, xHull, yHull, distances, periodDistances,yAll):
     index = 0
     for i in range(startIndex,endIndex):
@@ -273,8 +275,8 @@ def correctHull(xHull,yHull,corners,distances,yData):
     xHull, yHull, distances = correctRightSide(start+len(periodDistances),len(distances),xHull, yHull, distances, periodDistances,yData)
     xHull, yHull, distances = correctLeftSide(start-1,periodDistances,xHull, yHull, distances,yData)
     corners = correctCorners(corners, xHull)
-    dif = initializeDif(corners,xHull,yHull)
-    dis_all = calcVerticalDis.getAllMaxDistance(a_one,a_two,b_one,b_two,xHull[:int(len(xHull)/3)],yHull[:int(len(xHull)/3)])
+    #dif = initializeDif(corners,xHull,yHull)
+    #dis_all = calcVerticalDis.getAllMaxDistance(a_one,a_two,b_one,b_two,xHull[:int(len(xHull)/3)],yHull[:int(len(xHull)/3)])
 
     #
     #Decomment to write Logs
@@ -283,15 +285,15 @@ def correctHull(xHull,yHull,corners,distances,yData):
     
     debugWriterX.writerow(xHull)
     debugWriterY.writerow(yHull)
-    debugWriterDis.writerow(dis_all)
+    #debugWriterDis.writerow(dis_all)
     debugWriterCorners.writerow(corners)
-    debugWriterGrad.writerow(dif)
+    #debugWriterGrad.writerow(dif)
 
-    vectors = []
-    for i in range(1,len(xHull)):
-        vectors.append([(xHull[i]-xHull[i-1])/(a_two*b_two),(yHull[i]-yHull[i-1])/(a_two*b_two)])
+    #vectors = []
+    #for i in range(1,len(xHull)):
+    #    vectors.append([(xHull[i]-xHull[i-1])/(a_two*b_two),(yHull[i]-yHull[i-1])/(a_two*b_two)])
 
-    vectorWriter.writerow(vectors)
+    #vectorWriter.writerow(vectors)
     return xHull,yHull,corners,distances
 
 
@@ -403,7 +405,7 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
     numsteps = numPeelings       #number of gridpeelings
     highestx = numX
     
-
+    times = []
 
     #this if-statement shall make a grid, but doesnt work for small gridsizes and looks awful..
     #-> made gridsize 0.1 in vizualization...
@@ -445,16 +447,13 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
 
     
     i=0
-    if(True):
-    #while(True):
+    while(True):
         i = i+1
-        timeline = [a_one,a_two,numX]
         timeStart = time.time()
         oneStep()
         timeEnd = time.time()
         timeDiff = timeEnd-timeStart
-        timeline.append(timeDiff)
-        timeWriter.writerow(timeline)
+        times.append(timeDiff)
         '''
         x_max,dis_max = calcVerticalDis.getMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
         x_min, dis_min = calcVerticalDis.getMinDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
@@ -482,6 +481,8 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
                     print("vertikale Periode:",data_line[-1])
 
                     data_line.append(getHorizontalPeriod(a_two,b_two))
+                    timeAverage = sum(times)/len(times)
+                    data_line.append(timeAverage)
                     '''
                     allVerticalTranslation = getAverageVerticalTranslation(allMindistances)
                     AllperiodVerticalTranslation = getAverageVerticalTranslation(periodMindistances)
@@ -507,7 +508,7 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
                     #                    
                     globalWriter.writerow(data_line)
 
-                    #break
+                    break
                 #periodMindistances.append(dis_min)
                 periodReached = True
                 #print(ydataHull[0]/(b_two*a_two))
@@ -574,21 +575,18 @@ plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden gep
 #toinvestigate = [5,22,44,50,88,110,132,154,176,500]
 #toinvestigate = [2,3,4]
 toinvestigate = [15]
-path = f"../Investigate Specific/Investigate Time2/"
+path = f"../Investigate Specific/Dataset/"
 
 os.mkdir(path)
 
 globalWriter,file = csvStuff.createWriter(path+"LogAll.csv")
-header = ["a_one","a_two","b_one","b_two","g_one","g_two","steps til first","steps til second period","horizontal Period","durchschnittsverschiebung","durchschnittsverschiebung in Periode","durchschnitt Schlauchdicke","min Schlauchdicke","max Schlauchdicke"]
+header = ["a_one","a_two","b_one","b_two","g_one","g_two","steps til first","steps til second period","horizontal Period","average time in ms"]
 globalWriter.writerow(header)
 
 distanceWriter,distanceFile = csvStuff.createWriter(path+"Distances.csv")
 headerDis = ["a_one","a_two","b_one","b_two","Peeling","x_min","dis_min","x_max","dis_max"]
 distanceWriter.writerow(headerDis)
 
-timeWriter,timeFile = csvStuff.createWriter(path+"time.csv")
-timeHeader = ["a_one","a_two","numX","time"]
-timeWriter.writerow(timeHeader)
 
 allDistances = []
 
@@ -596,17 +594,16 @@ g_two = 1
 os.mkdir(path+"Logs")
 
 for x in toinvestigate:
-    for j in range(1,30,30):
-        for i in range(j,30,30):
-            for l in range(1,10 ,10):
-                for m in range(1,100000,1000):
-                    if(m%4==0):
-                        continue
-                    a_one = 1
-                    a_two = m
-                    b_one = 0
+    for j in range(1,101,1):
+        for i in range(j,101,1):
+            for l in range(0,101,1):
+                for m in range(l,101,1):
 
-                    b_two = 1
+                    a_one = j
+                    a_two = i
+                    b_one = l
+
+                    b_two = m
                     if(b_one == 0 and abs(b_two)!=1):
                         continue
 
@@ -623,18 +620,18 @@ for x in toinvestigate:
                     
                     os.mkdir(name)
                     
-                    debugWriterX,fileX = csvStuff.createWriter(name+"/debuggerX.csv")
-                    debugWriterY,fileY = csvStuff.createWriter(name+"/debuggerY.csv")
-                    debugWriterDis,fileDis = csvStuff.createWriter(name+"/debuggerVerticalDis.csv")
-                    debugWriterCorners,fileCorner = csvStuff.createWriter(name+"/debuggerCorners.csv")
-                    debugWriterGrad,fileDif = csvStuff.createWriter(name+"/debbugerGrad.csv")
-                    vectorWriter,vecFile = csvStuff.createWriter(name+"/vectors.csv")
+                    debugWriterX,fileX = csvStuff.createWriter(name+"/xValues.csv")
+                    debugWriterY,fileY = csvStuff.createWriter(name+"/yValues.csv")
+                    #debugWriterDis,fileDis = csvStuff.createWriter(name+"/debuggerVerticalDis.csv")
+                    debugWriterCorners,fileCorner = csvStuff.createWriter(name+"/Corners.csv")
+                    #debugWriterGrad,fileDif = csvStuff.createWriter(name+"/debbugerGrad.csv")
+                    #vectorWriter,vecFile = csvStuff.createWriter(name+"/vectors.csv")
 
                     mainTwo(highestx,numPeelings, plot,plotPeriod,a_one,a_two, b_one , b_two, g_one,g_two)
 
                     
                     fileX.close()
                     fileY.close()
-                    fileDis.close()
+                    #fileDis.close()
                     fileCorner.close()
-                    fileDif.close()
+                    #fileDif.close()
