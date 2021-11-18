@@ -490,7 +490,7 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
 
     initialize(n)
     #print(corners)
-
+    print((ydataHull[-1]+ydataHull[-2])/2)
     if(plot ==1):
         plt.scatter(xdataHull,ydataHull)
 
@@ -649,8 +649,8 @@ plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden gep
 1/924
 
 '''
-a = 150
-t = 8
+a = 274
+t = 10
 
 mainTwo(    t    ,numPeelings, plot,plotPeriod,a_one,   a    , b_one , b_two, g_one,g_two)
 

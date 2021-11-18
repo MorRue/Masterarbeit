@@ -188,7 +188,7 @@ def make_para_convex(xdata,ydata):
     return xdataHull,ydataHull
 
 
-def correctRightSide(startIndex,endIndex, xHull, yHull, distances, periodDistances,yAll):
+def correctRightSide(startIndex,endIndex, xHull, yHull, distances, periodDistances,yAll,xAll):
     index = 0
     for i in range(startIndex,endIndex):
         #if(distances[i]!=periodDistances[index]):
@@ -212,6 +212,14 @@ def correctRightSide(startIndex,endIndex, xHull, yHull, distances, periodDistanc
                 yHull.pop()
                 '''
             return xHull, yHull, distances
+    while(xHull[-1]+periodDistances[index]<=xAll[-1]):
+        distances.append(periodDistances[index])
+        xHull.append(xHull[-1]+distances[-1])
+        elementindex = int(round(xHull[-1]/(a_two*g_two*g_one*b_two),0))
+        yHull.append(yAll[elementindex])
+        index+=1
+        if(index==len(periodDistances)):
+            index = 0
     return xHull, yHull, distances
 
 def correctLeftSide(leftStartIndex, periodDistances, xHull, yHull, distances,yAll):
@@ -240,6 +248,15 @@ def correctLeftSide(leftStartIndex, periodDistances, xHull, yHull, distances,yAl
                 '''
                 j+=1
             return xHull, yHull, distances
+    while(xHull[0]-periodDistances[index]>=0):
+        distances.insert(0,periodDistances[index])
+
+        xHull.insert(0,xHull[0]-distances[0])
+        elementindex = int(round(xHull[0]/(a_two*g_two*g_one*b_two),0))
+        yHull.insert(0, yAll[elementindex])
+        index-=1
+        if(index==-1):
+            index = len(periodDistances)-1
     return xHull, yHull, distances
 
 def correctCorners(corners, xHull):
@@ -254,7 +271,7 @@ def correctCorners(corners, xHull):
  
     return corners
 
-def correctHull(xHull,yHull,corners,distances,yData):
+def correctHull(xHull,yHull,corners,distances,yData,xData):
 
     
     #
@@ -269,19 +286,20 @@ def correctHull(xHull,yHull,corners,distances,yData):
 
 
     start = int(len(distances)/3)
-    '''
+    
     periodDistances = calc.getPeriodDistances(start,len(distances),calculatePeriod(),distances)
 
     if(periodDistances == -1):
         print("problem")
         return -1
     
-    xHull, yHull, distances = correctRightSide(start+len(periodDistances),len(distances),xHull, yHull, distances, periodDistances,yData)
+    xHull, yHull, distances = correctRightSide(start+len(periodDistances),len(distances),xHull, yHull, distances, periodDistances,yData,xData)
     xHull, yHull, distances = correctLeftSide(start-1,periodDistances,xHull, yHull, distances,yData)
-    '''
+    
     corners = correctCorners(corners, xHull)
     #dif = initializeDif(corners,xHull,yHull)
-    
+
+
     #
     #Decomment to write Logs
     #
@@ -335,7 +353,7 @@ def initialize(size):
 
     xdataHull,ydataHull = make_para_convex(xData,yData)     #make the hull convex by removing the "inner" points,
     distances = calc.calc_distances_one(xdataHull)
-    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData)
+    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData,xData)
     for i in range(0,len(xdataHull)):
         possiblePeriodX.append(xdataHull[i])
         possiblePeriodY.append(ydataHull[i])
@@ -359,8 +377,8 @@ def plotRealValuesTranslate(xValues,yValues,translation):
     debugWriterY.writerow(yPlot)
     debugWriterDis.writerow(disPlot)
     '''
-    plt.scatter(xPlot[:20],yPlot[:20],s=10)
-    plt.plot(xPlot[:20],yPlot[:20])
+    plt.scatter(xPlot[:10],yPlot[:10],s=10)
+    plt.plot(xPlot[:10],yPlot[:10])
 
 
 def plotValuesTranslate(xValues,yValues,translation):
@@ -372,8 +390,8 @@ def plotValuesTranslate(xValues,yValues,translation):
     debugWriterY.writerow(yPlot)
     debugWriterDis.writerow(disPlot)
     '''
-    plt.scatter(xValues[:30],yPlot[:30],s=30)
-    plt.plot(xValues[:30],yPlot[:30])
+    plt.scatter(xValues[:10],yPlot[:10],s=30)
+    plt.plot(xValues[:10],yPlot[:10])
 
 def plotSecondHalf(xValues,yValues):
     xPlot = []
@@ -408,8 +426,8 @@ def plotRealValues(xValues,yValues,translation):
     debugWriterY.writerow(yPlot)
     debugWriterDis.writerow(disPlot)
     '''
-    #plt.scatter(xPlot[:20],yPlot[:20],s=10)
-    plt.plot(xPlot[:20],yPlot[:20],c='black')
+    plt.scatter(xPlot[:20],yPlot[:20],s=10)
+    plt.plot(xPlot[:20],yPlot[:20])
     #plt.scatter(xPlot[:20],yPlot[:20],s=10)
     #plt.plot(xPlot[:20],yPlot[:20])
 
@@ -427,12 +445,40 @@ def plotRealValuesBlue(xValues,yValues,translation):
     debugWriterY.writerow(yPlot)
     debugWriterDis.writerow(disPlot)
     '''
-    plt.scatter(xPlot[:20],yPlot[:20],s=10,c='b')
-    plt.plot(xPlot[:20],yPlot[:20],c='b')
+    plt.scatter(xPlot[:10],yPlot[:10],s=10,c='b')
+    plt.plot(xPlot[:10],yPlot[:10],c='b')
     #plt.scatter(xPlot[:20],yPlot[:20],s=10)
     #plt.plot(xPlot[:20],yPlot[:20])
 
 
+def plotRealValuesColour(xValues,yValues,translation,colour):
+    xPlot = []
+    yPlot = []
+    for i in range(0,len(xValues)):
+        x = xValues[i]/(g_two*g_two*a_two*b_two)
+        y = yValues[i]/(g_two*g_two*a_two*b_two)+translation
+        xPlot.append(x)
+        yPlot.append(y)
+    disPlot = calc.calc_distances_one(xPlot)
+    '''
+    debugWriterX.writerow(xPlot)
+    debugWriterY.writerow(yPlot)
+    debugWriterDis.writerow(disPlot)
+    '''
+    if(colour == 1):
+        plt.scatter(xPlot[:10],yPlot[:10],s=10,c="g")
+        plt.plot(xPlot[:10],yPlot[:10],c="g")
+    if(colour == 2):
+        plt.scatter(xPlot[:10],yPlot[:10],s=10,c="m")
+        plt.plot(xPlot[:10],yPlot[:10],c="m")
+    if(colour == 3):
+        plt.scatter(xPlot[:10],yPlot[:10],s=10,c="y")
+        plt.plot(xPlot[:10],yPlot[:10],c="y")
+    if(colour == 4):
+        plt.scatter(xPlot[:10],yPlot[:10],s=10,c="c")
+        plt.plot(xPlot[:10],yPlot[:10],c="c")
+    #plt.scatter(xPlot[:20],yPlot[:20],s=10)
+    #plt.plot(xPlot[:20],yPlot[:20])  
 
 
 # makes one step of the gridPeeling and updates the hull values
@@ -457,7 +503,7 @@ def oneStep():
     
     xdataHull,ydataHull = make_para_convex(xData,yData) #make the hull convex by removing the "inner" points 
     distances = calc.calc_distances_one(xdataHull)
-    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData)
+    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData,xData)
 
 
 def testPeriod(ydata,possibleY):
@@ -532,49 +578,44 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
         
     if plot == 1:
         #plotSecondHalf(xdataHull,ydataHull)
-        plotRealValues(xdataHull,ydataHull,0)
-
+        #plotRealValuesColour(xdataHull,ydataHull,0,4)
         #plotRealValuesBlue(xdataHull,ydataHull,0)
+        
         #plotRealValuesTranslate(xdataHull,ydataHull,0)
-
+        plotRealValues(xdataHull,ydataHull,0)
     
 
-    for i in range(0,0):
+    #for i in range(0,0):
     
-    #i=0
-    #while(True):
-        #i = i+1
+    i=0
+    while(True):
+        i = i+1
         oneStep()
         #print(xdataHull[len(xdataHull)-1]/a_two/b_two)
-        '''
         x_max,dis_max = calcVerticalDis.getMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
         x_min, dis_min = calcVerticalDis.getMinDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
+        print("max:",dis_max,"at",x_max)
+
         dis_max = dis_max-dis_min
-        line = [a_one,a_two,b_one,b_two,i,x_min,dis_min,x_max,dis_max]
-
-
-        #dis_all = calcVerticalDis.getAllMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-        #x,y = calc.getBothFromOne(dis_all)
-        #plt.plot(x,y)
-
-        line = [a_one,a_two,b_one,b_two,0,x_min,dis_min,x_max,dis_max]
-        #print("Peeling:",0,x_min,dis_min,x_max,dis_max)
-        #debugWriterDis.writerow(line)
-        #distanceWriter.writerow(line)
-        #print("Peeling",i,": x-Val des min. Abst.:",x_min,", Min. Abst.:",round(dis_min,4),", x-Val des max. Abst.:",x_max,", Max. Abs:",dis_max)
+        line = [x_min,dis_min,x_max,dis_max]
+        print("min:",x_min,dis_min)
+        print("max:",dis_max)
         '''
-        if plot == 1 and xdataHull[0]!=0:
+        if plot == 1 and xdataHull[0]!=0 and i<=4:
             #plotSecondHalf(xdataHull,ydataHull)
-            plotRealValues(xdataHull,ydataHull,i+1)
+            plotRealValuesColour(xdataHull,ydataHull,i,4)
             #plotRealValuesTranslate(xdataHull,ydataHull,0.2*i)
-
+        elif plot == 1 and xdataHull[0]==0:
+            plotRealValuesBlue(xdataHull,ydataHull,i)
+        elif plot == 1:
+            plotRealValuesColour(xdataHull,ydataHull,i,i%4)
+        '''
+        if plot == 1:
+            plotRealValues(xdataHull,ydataHull,0)
+            #plotRealValuesTranslate(xdataHull,ydataHull,0)
         
 
         if(xdataHull[0]==0):
-            if plot == 1:
-                #plotSecondHalf(xdataHull,ydataHull)
-                plotRealValues(xdataHull,ydataHull,i+1)
-                #plotRealValuesTranslate(xdataHull,ydataHull,0.2*i)
             count = count+1
             if(xdataHull==possiblePeriodX and (testPeriod(ydataHull,possiblePeriodY) == False)):
                 data_line.append("x")
@@ -608,15 +649,19 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
                     possiblePeriodY.append(ydataHull[k])
                 
      
-    if plotPeriod==1:
+    if plot==4:
         
-        mostrightx = int(xdataHull[-1]/a_two/b_two)
+        mostrightx = int(xdataHull[10]/a_two/b_two)
         leftrightx = int(xdataHull[0]/a_two/b_two)
 
         x = np.linspace(leftrightx,mostrightx,1000)
-        y = a_one*(x**2)/a_two + b_one * x /b_two 
+        y=(x**2)*51/100 + 18
+        #y = a_one*(x**2)/a_two + b_one * x /b_two +18
         #x = a_two*x*b_two
-        plt.plot(x,y, 'r', color = '0')
+        plt.plot(x,y, 'black',linewidth=3)
+        y=(x**2)*51/100
+        plt.plot(x,y, 'black',linewidth=3)
+
         
     plt.show()
 
@@ -639,8 +684,8 @@ possiblePeriodY = []
 data_line = []      #line which gets written in CSV
 
 # PARABOLA COEFFICIENTS
-a_one = 1            #a_one , a_two , b_one and b_two are the Nenner(two) and Zaehler(one) from f(x) = ax^2 + bx
-a_two = 7
+a_one = 1           #a_one , a_two , b_one and b_two are the Nenner(two) and Zaehler(one) from f(x) = ax^2 + bx
+a_two = 11
 b_one = 0
 b_two = 1       # b_two must be unequal 0! and should be equal to 1 if b_one == 0
 
@@ -658,8 +703,8 @@ periodReached  = False
 
 #VIEWSTUFF
 printstep = 0      #printstep == 1 -> jeder Schritt wird geprintet
-plot = 0         #plot ==1 -> Graphen werden geplottet
-plotPeriod = 1      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden geplottet
+plot = 1         #plot ==1 -> Graphen werden geplottet
+plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden geplottet
 
 
 #debugWriterX = csvStuff.createWriter("../debuggerX.csv")

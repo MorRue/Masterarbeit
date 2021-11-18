@@ -48,7 +48,7 @@ def getMinDistance(a_one,a_two,b_one,b_two,xVals,yVals):
         xVal= xVals[i]/(a_two*b_two)
         yVal = yVals[i]/(a_two*b_two) 
         
-        f_xVal =  (a_one/float(a_two)) * xVal**2 + (b_one/float(b_two)) * xVal
+        f_xVal =  (a_one/float(a_two)) * (xVal**2) + (b_one/float(b_two)) * xVal
 
         #distance = y-Value of hullcorner - y-Value of parabola
 

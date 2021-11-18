@@ -573,13 +573,13 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
      
     if plot == 1 or plotPeriod==1:
         
-        mostrightx = int(xdataHull[-1]/a_two/b_two)
-        leftrightx = int(xdataHull[0]/a_two/b_two)
+        mostrightx = int(xdataHull[-1])
+        leftrightx = int(xdataHull[0])
 
         x = np.linspace(leftrightx,mostrightx,1000)
-        y = a_one*(x**2)/a_two + b_one * x /b_two 
+        y = a_one*(x**2)/(2*a_two) + b_one * x /b_two 
         #x = a_two*x*b_two
-        plt.plot(x,y, 'r', color = '0')
+        plt.plot(x,y, 'black')
         
         plt.show()
 
@@ -637,8 +637,13 @@ plotPeriod = 0      #plotPeriod == 1 -> nur Graphen mit xdata[0] == 0 werden gep
 -------------------
 1/2   ->  1-2      
 1/8   ->  2-3     
-1/22  ->  3-4     
-1/44  ->  4-5             
+1/22  ->  3-4   
+
+
+1/44  ->  4-5     
+
+
+
 1/86  ->  5-6              
 1/128 ->  6-7                 
 1/214 ->  7-8              
