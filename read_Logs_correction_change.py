@@ -80,9 +80,12 @@ def displayMaxDifferences():
     changeReader = csvStuff.createReader(pathToLogAll+"change.csv")
     a = []
     maxChanges = []
+    percentChanges = []
     for row in changeReader:
         a.append(float(row[0]))
+        numPoints = int(row[4])
         maxChanges.append(int(row[3]))
+        percentChanges.append(100*int(row[3])/numPoints)
     f,(figOne) = plt.subplots(1,1)
     figOne.xaxis.set_label_text("a")
     figOne.yaxis.set_label_text("Maximale Anzahl an korrigierten Punkten")
