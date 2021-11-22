@@ -494,7 +494,7 @@ periodReached  = False
 
 
 
-path = f"../testa/"  #name of directory where all the logs of the peelings and the summary log will be saved
+path = f"../All Data/"  #name of directory where all the logs of the peelings and the summary log will be saved
 writeLogs = False       #if=="True": for every investigated parabola there will be a folder with Logs for every Peeling, if=="False": no Folder afterwards for every Parabola 
 
 
@@ -513,10 +513,10 @@ if(writeLogs==True):
 
 newTime =  time.time()
 
-for j in range(1,11,1):                #values for a_1
-    for i in range(j,11,1):            #values for a_2
-        for l in range(1,11,1):        #values for b_1
-            for m in range(l,11,1):    #values for b_2
+for j in range(1,101,1):                #values for a_1
+    for i in range(j,101,1):            #values for a_2
+        for l in range(1,11,1):         #values for b_1
+            for m in range(l,11,1):     #values for b_2
 
                 a_one = j       #
                 a_two = i       #parabola coefficients:

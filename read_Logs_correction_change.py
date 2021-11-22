@@ -84,5 +84,5 @@ def displayMaxDifferences(pathToFile):
     plt.show()
 
 #createMaxDifferencesLog()
-displayMaxDifferences()
+#displayMaxDifferences()
 
