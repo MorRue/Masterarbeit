@@ -1,18 +1,9 @@
 from numpy.lib.function_base import diff
-import csvStuff
 import calc
-import calcVerticalDis
-
-import time
-import math
-import os
-import shutil
 from random import *
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 import numpy as np
-import pandas as pd
-import cProfile
 import operator
 
 #first transforms the grid by stretching it to the standard grid
@@ -136,27 +127,7 @@ def parabola_func(input):
     else:
         return input* input*a_one*b_two *g_one*g_one + input * a_two * b_one * g_one * g_two + getGrid()-mod
 
-#
-#umschreiben Ecke vorher
-#
-def initializeDif(corners,xData,yData):
-    dif = []
-    count = 0
-    for i in range(0,len(corners)):
-        if(corners[i]==1):
-            if(count != 0 and count+1<len(yData)):
-                gradOne = (int(yData[count])-int(yData[count-1]))/(int(xData[count])-int(xData[count-1]))
-                gradTwo = (int(yData[count+1])-int(yData[count]))/(int(xData[count+1])-int(xData[count]))
-                dif.append(gradTwo-gradOne)
-            else:
-                dif.append('x')
-            count +=1
-        else:
-            dif.append('x')
-    return dif
-
-
-            
+         
 
 
 
@@ -172,8 +143,6 @@ def make_para_convex(xdata,ydata):
         if(l>=1):
             gradOne = (ydataHull[l]-ydataHull[l-1]) * (xdata[k]-xdataHull[l])
             gradTwo = (ydata[k]-ydataHull[l]) * (xdataHull[l]-xdataHull[l-1])
-            #gradOne = math.atan2(ydataHull[l]-ydataHull[l-1],xdataHull[l]-xdataHull[l-1])
-            #gradTwo = math.atan2(ydata[k]-ydataHull[l],xdata[k]-xdataHull[l])
             while(l>=1 and gradOne >= gradTwo):
                 xdataHull.pop()
                 ydataHull.pop()
@@ -181,8 +150,6 @@ def make_para_convex(xdata,ydata):
                 if(l>=1):
                     gradOne = (ydataHull[l]-ydataHull[l-1]) * (xdata[k]-xdataHull[l])
                     gradTwo = (ydata[k]-ydataHull[l]) * (xdataHull[l]-xdataHull[l-1])
-                    #gradOne = math.atan2(ydataHull[l]-ydataHull[l-1],xdataHull[l]-xdataHull[l-1])
-                    #gradTwo = math.atan2(ydata[k]-ydataHull[l],xdata[k]-xdataHull[l])
         l += 1
         xdataHull.append(xdata[k])
         ydataHull.append(ydata[k])
@@ -363,15 +330,7 @@ def getAllData(plotX,plotY):
 
 def initialize(n):
     global corners,yData,xdataHull,ydataHull,distances,possiblePeriodX,possiblePeriodY,xData
-    '''
-    del corners[:]
-    del yData[:]
-    del xdataHull[:]
-    del ydataHull[:]
-    del distances[:]
-    del possiblePeriodX[:]
-    
-    '''
+
     corners =[]
     yData = []
     xData = []
@@ -381,13 +340,10 @@ def initialize(n):
     possiblePeriodX = []
     possiblePeriodY = []
 
-    #gridVar = getGrid()
 
     x,y,grad,all = getStartingParabola(n) #all enthält x,y,grad mit 0<y<=x<=t der Input-wert ist dabei t
     s = sorted(all, key = operator.itemgetter(2)) #nach Steigung sortieren
-
     plotX,plotY = getGraph(s)   #macht vektoren zu x,y-Werten - allerdings auch Werte, die auf einer Strecke liegen!
-
     xData,yData = getAllData(plotX,plotY)
 
 
@@ -395,8 +351,6 @@ def initialize(n):
     #calculate the bottom y-value for every x-value and add all points to the hull
     for i in range (0,len(xData)):
         corners.append(1)
-
-
 
     xdataHull,ydataHull = make_para_convex(xData,yData)     #make the hull convex by removing the "inner" points,
     distances = calc.calc_distances_one(xdataHull)
@@ -495,22 +449,7 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
         plt.scatter(xdataHull,ydataHull)
 
         plt.plot(xdataHull,ydataHull)
-    '''
-    x_max,dis_max = calcVerticalDis.getMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-    x_min, dis_min = calcVerticalDis.getMinDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-    dis_max = dis_max-dis_min
-    dis_all = calcVerticalDis.getAllMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-    line = [a_one,a_two,b_one,b_two,0,x_min,dis_min,x_max,dis_max]
-    #print("Peeling",0,": x-Val des min. Abst.:",x_min,", Min. Abst.:",round(dis_min,4),", x-Val des max. Abst.:",x_max,", Max. Abs:",round(dis_max,4))
-    #distanceWriter.writerow(line)
-    x,y = calc.getBothFromOne(dis_all)
-    #plt.plot(x,y)
-    #print("initialized")    
-    '''
         
-
-
-    
 
     #for i in range(1,numsteps):
     
@@ -518,24 +457,6 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
     while(True):
         i = i+1
         oneStep()
-        #print(xdataHull[len(xdataHull)-1]/a_two/b_two)
-        '''
-        x_max,dis_max = calcVerticalDis.getMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-        x_min, dis_min = calcVerticalDis.getMinDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-        dis_max = dis_max-dis_min
-        line = [a_one,a_two,b_one,b_two,i,x_min,dis_min,x_max,dis_max]
-
-
-        #dis_all = calcVerticalDis.getAllMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull)
-        #x,y = calc.getBothFromOne(dis_all)
-        #plt.plot(x,y)
-
-        line = [a_one,a_two,b_one,b_two,0,x_min,dis_min,x_max,dis_max]
-        #print("Peeling:",0,x_min,dis_min,x_max,dis_max)
-        #debugWriterDis.writerow(line)
-        #distanceWriter.writerow(line)
-        #print("Peeling",i,": x-Val des min. Abst.:",x_min,", Min. Abst.:",round(dis_min,4),", x-Val des max. Abst.:",x_max,", Max. Abs:",dis_max)
-        '''
         if(plot ==1):
             plt.scatter(xdataHull,ydataHull)
             plt.plot(xdataHull,ydataHull)       
@@ -557,19 +478,7 @@ def mainTwo(numX,numPeelings,plot,plotPeriod,a_one_in,a_two_in, b_one_in, b_two_
             periodReached = True
             #print(ydataHull[0]/(b_two*a_two))
             data_line.append(i)
-        '''
-        elif(math.ceil(math.log2(count)) == math.log2(count) and periodReached == False):
-            del possiblePeriodX[:]
-            del possiblePeriodY[:]
-            
-            #possiblePeriodX = list(xdataHull)
-            #possiblePeriodX = []
-
-            for k in range(0,len(xdataHull)):
-                possiblePeriodX.append(xdataHull[k])
-                possiblePeriodY.append(ydataHull[k])
-        '''
-                
+               
      
     if plot == 1 or plotPeriod==1:
         
