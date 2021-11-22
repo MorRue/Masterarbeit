@@ -1,23 +1,17 @@
-import math
-import os
-import time
-from random import *
+from numpy.lib.function_base import diff
+import calc
 
+import math
+
+from random import *
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 import numpy as np
-from numpy.lib.function_base import average, diff
+import pandas as pd
 
-import calc
-import calcVerticalDis
-import csvStuff
+#first transforms the grid by stretching it to the standard grid
+#then calculates the stretched a_one/a_two and calculates the period
 
-# first transforms the grid by stretching it to the standard grid
-# then calculates the stretched a_one/a_two and calculates the period
-#
-# calculates the horizontal Period of the parabola a_one/a_two x^2 + b_one/b_two * x in the grid with length g_one/g_two
-# and stretches it by the factor g_two*a_two*b_two to fit it to the space
-#
 def calculatePeriod():
     global a_one,a_two,b_one,b_two,g_one,g_two  # parabola coefficients and grid variables
 
@@ -61,8 +55,6 @@ def getHorizontalPeriod(a,b):
     periodCase = getPeriodCase(a,b)
     return getPeriod(periodCase,a,b)
 
-
-
 #
 # calculates the horizontal Period of the parabola a_one/a x^2 + b_one/b * x in Z2
 # a_one/a and b_one/b need to be fully cancelled down
@@ -89,6 +81,7 @@ def getPeriod(periodCase,a, b):
         period = calc.getInt(a_half*b/calc.ggT(a,b))
     return period
 
+
 # there are 5 different cases (to be completely correct just 3) a-e which can be differentiated to
 # calculate the horizontal period of the parabola a_one/a x^2 + b_one/b * x in Z2
 #   a : a mod 2 !=0
@@ -109,6 +102,7 @@ def getPeriodCase(a, b):
     if (a % 2 == 0 and a % 4 != 0 and b % 2 == 0 and b % 4 != 0):
         return 'e'
     return 0
+
 
 #
 # to make everything integers the whole space gets stretched with
@@ -133,8 +127,6 @@ def getPeriodCase(a, b):
 def transformNormalToInt(input):
     return a_two*b_two * g_two*g_one*input
 
-
-
 # returns the stretched grid length
 #
 # grid -> grid * g_two * g_two * a_two *b_two
@@ -144,7 +136,8 @@ def getGrid():
     return g_one*g_two*a_two * b_two
 
 
-# returns the real grid length
+
+#returns the real grid length
 def getRealGrid():
     return g_one/float(g_two)
 
@@ -166,6 +159,8 @@ def parabola_func(input):
         return input* input*a_one*b_two *g_one*g_one + input * a_two * b_one * g_one * g_two
     else:
         return input* input*a_one*b_two *g_one*g_one + input * a_two * b_one * g_one * g_two + getGrid()-mod
+
+         
 
 
 
@@ -255,8 +250,6 @@ def correctLeftSide(leftStartIndex, periodDistances, xHull, yHull, distances,yAl
             return xHull, yHull, distances
     return xHull, yHull, distances
 
-
-
 # receive the xValues of a CH, xHull and returns the array corners with:
 #   corners[i] == 1 iff ((i*g_1/g_2),y) is in CH
 def correctCorners(corners, xHull):
@@ -267,24 +260,11 @@ def correctCorners(corners, xHull):
         corners[elementindex]=1
     return corners
 
-
-
 # receives a CH (xHull,yHull) and continues the horizontal distances from [H,2H] further to
 # the right with "correctRightSide"
 # the left with "correctLeftSide"
-#
-# if writeAlllogs == True the changes will get written to Logfiles 
 
-def correctHull(xHull,yHull,corners,distances,yData,writeAllLogs):
-
-
-    if(writeAllLogs==True): #write CSV's of values before correction
-        csvStuff.writePeeling(debugWriterX,"vorher","xHull",xHull)
-        csvStuff.writePeeling(debugWriterY,"vorher","yHull",yHull)
-        csvStuff.writePeeling(debugWriterCorners,"vorher","Corners",corners)
-        csvStuff.writePeeling(debugWriterDis,"vorher","dis",distances)
-
-
+def correctHull(xHull,yHull,corners,distances,yData):
     start = int(len(distances)/3)
     periodDistances = calc.getPeriodDistances(start,len(distances),calculatePeriod(),distances) # collect the horizontal distances which are inbetween [H,2H]
 
@@ -295,13 +275,8 @@ def correctHull(xHull,yHull,corners,distances,yData,writeAllLogs):
     xHull, yHull, distances = correctRightSide(start+len(periodDistances),len(distances),xHull, yHull, distances, periodDistances,yData) # correct [2H,3H]
     xHull, yHull, distances = correctLeftSide(start-1,periodDistances,xHull, yHull, distances,yData) # correct [0,H]
     corners = correctCorners(corners, xHull) # update 01-sequence
-
-    if(writeAllLogs==True): # write CSV's of values after correction
-        csvStuff.writePeeling(debugWriterX,"nachher","xHull",xHull)
-        csvStuff.writePeeling(debugWriterY,"nachher","yHull",yHull)
-        csvStuff.writePeeling(debugWriterCorners,"nachher","Corners",corners)
-        csvStuff.writePeeling(debugWriterDis,"nachher","dis",distances)
     return xHull,yHull,corners,distances
+
 
 
 # fills the array yData with f(x) rounded up to the grid
@@ -311,7 +286,7 @@ def correctHull(xHull,yHull,corners,distances,yData,writeAllLogs):
 # corners[i] == 0 -> ith element from yData is not in the hull
 # xdataHull and ydataHull save the x and y values of the points which are in the hull
 
-def initialize(size,writeLogs):
+def initialize(size):
 
     # (xData[i],yData[i])  is the i-th gridvertex, which is inside the CH
     # (xdataHull[i],ydataHull[i]) is the i-the corner of the CH
@@ -338,23 +313,36 @@ def initialize(size,writeLogs):
 
     xdataHull,ydataHull = make_para_convex(xData,yData)     #make the hull convex by removing the "inner" points,
     distances = calc.calc_distances_one(xdataHull)  #collect horizontal distances between Corners of CH
-    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData,writeLogs) #correct the CH
+    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData) #correct the CH
     
     for i in range(0,len(xdataHull)):   #initialize possible termination condidition
         possiblePeriodX.append(xdataHull[i])
         possiblePeriodY.append(ydataHull[i])
 
 
-# returns the array averageTranslation which contains the the differences between the values
-# in MinVerticalDis
-# since MinVertical is the Translation of ax^2+bx till it reached the current CH, the difference in
-# these distances can be seen as the Translation of a peeling
+#plots the x and y Values stretched back to the Z2 
+#translates y values with translation "translation"
+#x -> x/(g_two^2 * a_two * b_two)
 
-def getAverageVerticalTranslation(MinVerticalDis):
-    averageTranslation = []
-    for i in range(1,len(MinVerticalDis)):
-        averageTranslation.append(MinVerticalDis[i]-MinVerticalDis[i-1])
-    return averageTranslation
+def plotRealValuesTranslate(xValues,yValues,translation):
+    xPlot = []
+    yPlot = []
+    for i in range(0,len(xValues)):
+        x = xValues[i]/(g_two*g_two*a_two*b_two)
+        y = yValues[i]/(g_two*g_two*a_two*b_two)
+        xPlot.append(x)
+        yPlot.append(y+translation)
+    plt.scatter(xPlot[:10],yPlot[:10],s=10)
+    plt.plot(xPlot[:10],yPlot[:10])
+
+
+def plotValuesTranslate(xValues,yValues,translation):
+    yPlot = []
+    for y in yValues:
+         yPlot.append(y+translation)
+    plt.scatter(xValues[:10],yPlot[:10],s=30)
+    plt.plot(xValues[:10],yPlot[:10])
+
 
 
 # makes one step of the gridPeeling and updates the hull values
@@ -364,7 +352,7 @@ def oneStep():
     #(xdataHull[i],ydataHull[i]) is the i-the corner of the CH
     #distances[i] is the horizontal distance between the i-th and i+1-th corner of the CH
     #corners[i] == 0 iff (xData[i],yData[i]) is in CH, 1 else
-    global corners,yData,xdataHull,ydataHull,distances,xData,writeLogs
+    global corners,yData,xdataHull,ydataHull,distances,xData
 
     xdataHull = []
     ydataHull = []
@@ -377,10 +365,10 @@ def oneStep():
             yData[i] = yData[i]+ gridVar
         corners[i]=1    #will get updated later anyway
 
-
     xdataHull,ydataHull = make_para_convex(xData,yData) # make the hull convex by removing the "inner" points
     distances = calc.calc_distances_one(xdataHull) # update the horizontal distances
-    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData,writeLogs) # correct the mistakes mistakes at the edge
+    xdataHull,ydataHull,corners,distances = correctHull(xdataHull,ydataHull,corners,distances,yData) # correct the mistakes mistakes at the edge
+
 
 # check if yData[i] is a vertical translation of possibleY[i] with the same
 # translation for all i
@@ -393,77 +381,45 @@ def testPeriod(ydata,possibleY):
             return False
     return True
 
+  
+
+
 #
 #calculate grid peeling for: f(x) = a_one_in/a_two_in * x^2 + b_one_in/b_two_in *x in the grid with grid length g_one_in,g_two_in
 #
-def main(numX,a_one_in,a_two_in, b_one_in, b_two_in , g_one_in,g_two_in,writeLogs_in):
+def main(numX,a_one_in,a_two_in, b_one_in, b_two_in , g_one_in,g_two_in):
 
     #initialize all the global variables
     global gridparam,gridSize,highestx,numsteps,parabola_param,rounder,distances,a_one,a_two,b_one, b_two,g_one,g_two, data_line,possiblePeriodX,possiblePeriodY,writeLogs
     a_one,a_two,b_one,b_two,g_one,g_two = a_one_in,a_two_in,b_one_in, b_two_in,g_one_in,g_two_in
     highestx = numX
-    writeLogs = writeLogs_in #if True for there will be files, to examine the different peelings
+
+    intervals = float(getRealGrid()) #Spacing between each line of the displayed grid 
+    fig,ax=plt.subplots()  
+    locx = plticker.MultipleLocator(base=intervals)
+    locy = plticker.MultipleLocator(base=intervals)    
+    ax.xaxis.set_major_locator(locx)
+    ax.yaxis.set_major_locator(locy)
+    ax.grid(b= True, which='both', axis='both', linestyle='-',zorder =10)
+
     
-    del data_line[:]        #the row which gets written in the "Summary"-Log
-    data_line.append(a_one)
-    data_line.append(a_two)
-    data_line.append(b_one)
-    data_line.append(b_two)
-    data_line.append(g_one)
-    data_line.append(g_two)
-
-
-    initialize(highestx,writeLogs) #calculate the first approximation of the parabola
+    initialize(highestx) #calculate the first approximation of the parabola
+    plotRealValuesTranslate(xdataHull,ydataHull,0)
 
     periodReached = False  #there was a CH which was a vertical translation of possiblePeriod[]
-    periodMaxdistances = []  # contains the thickness of the tube in which the approximation is for each peeling in the time-period
-    periodMindistances = []  # contains the minimum distance from the parabola ax^2+bx to the approximation for each peeling in the time period
-    times = [] # contains the seconds it took to do the i-th peeling
-    count = 0 #number of peelings
-
+    count = 0              #number of peelings
     i=0
     while(True):
         i = i+1
-        timeStart = time.time()
         oneStep()       # make one peeling
-        timeEnd = time.time()
-        timeDiff = timeEnd-timeStart
-        times.append(timeDiff)
-
-        x_max,dis_max = calcVerticalDis.getMaxDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull) #dis_max =maximum distance from ax^2+bx to parabola , x_max = x-value where the maximum distance is
-        x_min, dis_min = calcVerticalDis.getMinDistance(a_one,a_two,b_one,b_two,xdataHull,ydataHull) #dis_min =minimum distance from ax^2+bx to parabola , x_min = x-value where the minimum distance is
-        dis_max = dis_max-dis_min   #tube thickness
-
-        if(periodReached==True):
-            periodMindistances.append(dis_min)
-            periodMaxdistances.append(dis_max)
-
+        plotRealValuesTranslate(xdataHull,ydataHull,0)
         if(xdataHull[0]==0):    #possible vertical translation
             count = count+1
             if(xdataHull==possiblePeriodX and testPeriod(ydataHull,possiblePeriodY)): # CH is is vertical translation of (possiblePeriodX,possiblePeriodY)
                 if(periodReached == True):  #you reach a translation the second time
-                    data_line.append(i-data_line[len(data_line)-1])     #time-period
-                    data_line.append(getHorizontalPeriod(a_two,b_two))  #horizontal-period
-                    timeAverage = sum(times)/len(times)                 #average time per peeling
-                    data_line.append(timeAverage)       
-
-                    AllperiodVerticalTranslation = getAverageVerticalTranslation(periodMindistances)    #get the vertical translations in a time-period
-
-                    periodVerticalTranslation =sum(AllperiodVerticalTranslation)/len(AllperiodVerticalTranslation) #calculate average of vertical translation in a time-period
-                    maxTubeThicknessPeriod =  max(periodMaxdistances)   #maximum thickness of tube of all Peelings in time-period
-                    averageTubeThicknessPeriod = sum(periodMaxdistances)/(len(periodMaxdistances)) #average thickness of tube of all Peelings in time-period
-
-                    data_line.append(averageTubeThicknessPeriod)
-                    data_line.append(periodVerticalTranslation)
-                    data_line.append(maxTubeThicknessPeriod)
-                    globalWriter.writerow(data_line)
-
                     break
-
                 periodReached = True
-                periodMindistances.append(dis_min)
-                periodMaxdistances.append(dis_max)
-                data_line.append(i)
+
 
             elif(math.ceil(math.log2(count)) == math.log2(count) and periodReached == False):   #initialize new possiblePeriod as termination
                 del possiblePeriodX[:]
@@ -471,6 +427,16 @@ def main(numX,a_one_in,a_two_in, b_one_in, b_two_in , g_one_in,g_two_in,writeLog
                 for k in range(0,len(xdataHull)):
                     possiblePeriodX.append(xdataHull[k])
                     possiblePeriodY.append(ydataHull[k])
+    
+    mostrightx = int(xdataHull[10]/a_two/b_two)
+    leftrightx = int(xdataHull[0]/a_two/b_two)
+
+    x = np.linspace(leftrightx,mostrightx,1000)
+    y = a_one*(x**2)/a_two + b_one * x /b_two
+    plt.plot(x,y, 'black',linewidth=2)
+    plt.show()
+
+
 
 
 
@@ -500,9 +466,9 @@ data_line = []      #line which gets written in Summary CSV
 
 
 
-# PARABOLA COEFFICIENTS
+# PARABOLA COEFFICIENTS from f(x)=a_one/a_two * x^2 + b_one/b_two * x
 a_one = 1            #a_one , a_two , b_one and b_two are the Nenner(two) and Zaehler(one) from f(x) = ax^2 + bx
-a_two = 1
+a_two = 2
 b_one = 0
 b_two = 1           # b_two must be unequal 0! and should be equal to 1 if b_one == 0
 
@@ -517,77 +483,4 @@ if(highestx<50):
 
 periodReached  = False
 
-
-####################################################################
-##                                                                ##
-##      SET THE VARIABLES "path" and "writeLogs"  AS YOU LIKE     ##
-##                                                                ##
-####################################################################
-
-
-
-path = f"../Test Grenzen/"  #name of directory where all the logs of the peelings and the summary log will be saved
-writeLogs = False       #if=="True": for every investigated parabola there will be a folder with Logs for every Peeling, if=="False": no Folder afterwards for every Parabola 
-
-
-
-####################################################################
-
-
-os.mkdir(path)
-globalWriter,file = csvStuff.createWriter(path+"Summary.csv") #create the CSV file in which the results will get written and the Object to write in it
-header = ["a_1","a_2","b_1","b_2","g_1","g_2","steps til period gets recognized","time period","horizontal period","average time in seconds per peeling","average tube thickness in Period","average vertical translation in period", "max tube thickness in period"]
-globalWriter.writerow(header)
-
-
-if(writeLogs==True):    
-    os.mkdir(path+"Logs") #create directory for Logs of Peelings
-
-newTime =  time.time()
-toinvestigate = [2,8,22,44]
-for x in toinvestigate:
-    for j in range(1,11,11):                #values for a_1
-        for i in range(j,11,11):            #values for a_2
-            for l in range(0,21,1):        #values for b_1
-                for m in range(l,21,1):    #values for b_2
-
-                    a_one = 1       #
-                    a_two = x       #parabola coefficients:
-                    b_one = l       #f(x) = a_one/a_two*x^2 + b_one/b_two*x
-                    b_two = m       #
-
-                    if(b_one == 0 and abs(b_two)!=1):   #to avoid multiple times b=0
-                        continue
-
-                    highestx = int(3*g_two*calculatePeriod()/g_one/b_two/a_two/g_two/g_two)        #number of calculated points [0:3*horizontalPeriod]
-                    
-                    if(highestx<50): #to avoid errors which could occur while correcting the hull, if the hull is too small
-                        highestx=50
-                    
-                    #avoid calculation of same values for a and b
-                    if(calc.ggT(a_one,a_two)!=1):
-                        continue
-                    if(calc.ggT(b_one,b_two)!=1):
-                        continue
-
-                    name = path+"Logs/a="+str(a_one)+"|"+str(a_two)+" b="+str(b_one)+"|"+str(b_two)+" g="+str(g_one)+"|"+str(g_two) #name of folder in which the Log gets written
-                    
-                    print(name) #to know where in the programm you are at the moment
-
-
-                    if(writeLogs== True):   #create Files and Objects to write Logs for every Peeling 
-                        os.mkdir(name)
-                        debugWriterX,fileX = csvStuff.createWriter(name+"/xValues.csv")
-                        debugWriterY,fileY = csvStuff.createWriter(name+"/yValues.csv")
-                        debugWriterDis,fileDis = csvStuff.createWriter(name+"/verticalDis.csv")
-                        debugWriterCorners,fileCorner = csvStuff.createWriter(name+"/Corners.csv")
-
-
-                    main(highestx, a_one,a_two, b_one , b_two, g_one,g_two,writeLogs) #start the grid peeling
-                    
-                    if(writeLogs== True):   #close the opened files
-                        fileX.close()
-                        fileY.close()
-                        fileDis.close()
-                        fileCorner.close()
-
+main(highestx,a_one,a_two, b_one, b_two , g_one,g_two)
