@@ -34,10 +34,10 @@ def getDifference(current, next):
 #
 #ATTENTION: the "writeLogs" variable in "investigate_specific_parabolas" needed to be turned on, to make it work!
 #
-def createMaxDifferencesLog(pathToFolder):
-    pathToLogs = f"{pathToFolder}/Logs/"
-    pathToLogAll = f"{pathToFolder}/"
-    logAllReader = csvStuff.createReader(pathToLogAll+"LogAll.csv")
+def createMaxDifferencesLog(Foldername):
+    pathToLogs = f"./Logs/{Foldername}/Logs/"
+    pathToLogAll = f"./Logs/{Foldername}/"
+    logAllReader = csvStuff.createReader(pathToLogAll+"Summary.csv")
     changeWriter,changeFile = csvStuff.createWriter(pathToLogAll+"change.csv")
     next(logAllReader)
     for row in logAllReader:
@@ -67,8 +67,9 @@ def createMaxDifferencesLog(pathToFolder):
 
 
 #displays the results created by "createMaxDifferencesLog" in the File
-def displayMaxDifferences(pathToFile):
-    changeReader = csvStuff.createReader(pathToFile)
+def displayMaxDifferences(Foldername):
+    path = f"./Logs/{Foldername}/Summary.csv"
+    changeReader = csvStuff.createReader(path)
     a = []
     maxChanges = []
     percentChanges = []
@@ -83,6 +84,6 @@ def displayMaxDifferences(pathToFile):
     figOne.scatter(a,maxChanges)
     plt.show()
 
-#createMaxDifferencesLog()
-#displayMaxDifferences()
+#createMaxDifferencesLog(Foldername)
+#displayMaxDifferences(Foldername)
 

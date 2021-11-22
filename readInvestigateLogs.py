@@ -246,5 +246,5 @@ def main(displaycase):
     if(displaycase == 5): verticalPeriodAtBorder("./Logs/Dataset bordercases.csv") #displays the time-period at the border cases
     if(displaycase == 6): displayTubethicknessAtBorder("./Logs/Dataset bordercases.csv") #displays the average tube thickness at the border cases
 
-
-main(6)
+displaycase = 1
+main(1)
