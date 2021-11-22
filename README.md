@@ -1,5 +1,5 @@
 # Masterarbeit
-Programme zur Masterarbeit: Untersuchung der Periodizität von Parabeln unter Anwendung des GridPeelings
+Programme zur Masterarbeit: Die Gitterschälung und der aﬀine Kurvenfluss auf Parabeln
 
 Erklärung der Programme:
 
