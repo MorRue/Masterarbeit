@@ -8,6 +8,7 @@ import matplotlib.ticker as plticker
 import numpy as np
 from numpy.lib.function_base import average, diff
 
+import sys
 import calc
 import calcVerticalDis
 import csvStuff
@@ -205,8 +206,8 @@ def correctHull(xHull,yHull,corners,distances,yData,writeAllLogs):
         print("problem")
         return -1
 
-    xHull, yHull, distances = calc.correctRightSide(start+len(periodDistances),len(distances),xHull, yHull, distances, periodDistances,yData) # correct [2H,3H]
-    xHull, yHull, distances = calc.correctLeftSide(start-1,periodDistances,xHull, yHull, distances,yData) # correct [0,H]
+    xHull, yHull, distances = correctRightSide(start+len(periodDistances),len(distances),xHull, yHull, distances, periodDistances,yData) # correct [2H,3H]
+    xHull, yHull, distances = correctLeftSide(start-1,periodDistances,xHull, yHull, distances,yData) # correct [0,H]
     corners = correctCorners(corners, xHull) # update 01-sequence
 
     if(writeAllLogs==True): # write CSV's of values after correction
@@ -494,10 +495,14 @@ periodReached  = False
 
 
 
-path = f"../All Data/"  #name of directory where all the logs of the peelings and the summary log will be saved
-writeLogs = False       #if=="True": for every investigated parabola there will be a folder with Logs for every Peeling, if=="False": no Folder afterwards for every Parabola 
+path = f"./Logs/AllData/"  #name of directory where all the logs of the peelings and the summary log will be saved
+writeLogs = False #if=="True": for every investigated parabola there will be a folder with Logs for every Peeling, if=="False": no Folder afterwards for every Parabola 
 
 
+input = sys.argv[:]
+if(len(input)>1):  
+    if(input[1]=='1'):      #user wanted to create Logs
+        writeLogs = True       
 
 ####################################################################
 

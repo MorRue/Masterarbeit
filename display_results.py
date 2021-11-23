@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 import csvStuff
-
+import sys
 
 ##########################################################################
 ##                                                                      ##
@@ -239,12 +239,12 @@ def displayTubethicknessAtBorder(path_to_Summary_Log):
 
 
 def main(displaycase):
-    if(displaycase == 1): disPlayVerticalPeriod("./Logs/Dataset b!=0.csv") #displays the time-period of All Data
-    if(displaycase == 2): displayVerticalTranslation("./Logs/Dataset b!=0.csv") #displays the average vertical translation in the time period of All Data   
-    if(displaycase == 3): displayMaximumTubethickness("./Logs/Dataset b!=0.csv")  #displays the maximum tube thickness in the time-period
-    if(displaycase == 4): displayVerticalTranslationAtBorder("./Logs/Dataset bordercases.csv") #displays the average vertical translation at the border-cases
-    if(displaycase == 5): verticalPeriodAtBorder("./Logs/Dataset bordercases.csv") #displays the time-period at the border cases
-    if(displaycase == 6): displayTubethicknessAtBorder("./Logs/Dataset bordercases.csv") #displays the average tube thickness at the border cases
+    if(displaycase == '1'): disPlayVerticalPeriod("./Logs/Dataset b!=0.csv") #displays the time-period of All Data
+    if(displaycase == '2'): displayVerticalTranslation("./Logs/Dataset b!=0.csv") #displays the average vertical translation in the time period of All Data   
+    if(displaycase == '3'): displayMaximumTubethickness("./Logs/Dataset b!=0.csv")  #displays the maximum tube thickness in the time-period
+    if(displaycase == '4'): displayVerticalTranslationAtBorder("./Logs/Dataset bordercases.csv") #displays the average vertical translation at the border-cases
+    if(displaycase == '5'): verticalPeriodAtBorder("./Logs/Dataset bordercases.csv") #displays the time-period at the border cases
+    if(displaycase == '6'): displayTubethicknessAtBorder("./Logs/Dataset bordercases.csv") #displays the average tube thickness at the border cases
 
-displaycase = 1
-main(1)
+displaycase = sys.argv[1]
+main(displaycase)

@@ -1,5 +1,6 @@
 import csvStuff
 import matplotlib.pyplot as plt
+import sys
 
 # get the Index of the first element in "current" which is also in "next"
 def getFirstIndex(current,next):
@@ -68,7 +69,7 @@ def createMaxDifferencesLog(Foldername):
 
 #displays the results created by "createMaxDifferencesLog" in the File
 def displayMaxDifferences(Foldername):
-    path = f"./Logs/{Foldername}/Summary.csv"
+    path = f"./Logs/{Foldername}/change.csv"
     changeReader = csvStuff.createReader(path)
     a = []
     maxChanges = []
@@ -84,6 +85,12 @@ def displayMaxDifferences(Foldername):
     figOne.scatter(a,maxChanges)
     plt.show()
 
-#createMaxDifferencesLog(Foldername)
-#displayMaxDifferences(Foldername)
 
+def main(Foldername,input):
+    if(input =='1'):
+        createMaxDifferencesLog(Foldername)    #you need to create a Folder with investigate_specific_parabolas.py first. Set variable writeLogs in investigate_specific_parabolas.py to true!
+    if(input == '2'):
+        displayMaxDifferences(Foldername)
+
+options = sys.argv[1:3]
+main(options[0],options[1])
